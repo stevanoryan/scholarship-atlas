@@ -1,0 +1,1248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scholarship Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:light}
+[hidden]{display:none!important}
+img{max-width:100%}
+
+/* Layout: a dossier register — one scannable ledger table, each row opens a full application file (handbook, checklist, stages). */
+:root{
+  --bg:#F4F6F8; --surface:#FFFFFF; --sunk:#EAEEF2; --line:#D6DDE4;
+  --fg:#16202C; --muted:#5A6878; --accent:#1C5C86; --accent-soft:#E1ECF4;
+  --open:#1E7A4C; --open-bg:#E2F3EA; --soon:#9A5B00; --soon-bg:#FBEFD9;
+  --closed:#6B7480; --closed-bg:#ECEEF1; --vary:#5B4BA6; --vary-bg:#ECE9F8;
+  --stamp:#B5432A;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Public Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F151C; --surface:#161E27; --sunk:#1C2631; --line:#2A3644;
+  --fg:#E6ECF2; --muted:#98A6B5; --accent:#7DB8E0; --accent-soft:#1B3245;
+  --open:#6FD3A0; --open-bg:#173226; --soon:#F0B85C; --soon-bg:#33270F;
+  --closed:#9AA4B0; --closed-bg:#222B35; --vary:#B5A8F0; --vary-bg:#262141;
+  --stamp:#E8846C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F151C; --surface:#161E27; --sunk:#1C2631; --line:#2A3644;
+  --fg:#E6ECF2; --muted:#98A6B5; --accent:#7DB8E0; --accent-soft:#1B3245;
+  --open:#6FD3A0; --open-bg:#173226; --soon:#F0B85C; --soon-bg:#33270F;
+  --closed:#9AA4B0; --closed-bg:#222B35; --vary:#B5A8F0; --vary-bg:#262141;
+  --stamp:#E8846C; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--f-body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:28px 56px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(28px,4vw,40px);font-weight:700}
+h2{font-size:clamp(22px,3vw,30px);font-weight:700}
+h3{font-size:17px;font-weight:700}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,tr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.eyebrow{font:500 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+header.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 24px}
+header.top p{margin:6px 0 0;max-width:62ch;color:var(--muted)}
+.asof{font:500 12px/1.4 var(--f-mono);color:var(--stamp);border:1.5px solid var(--stamp);border-radius:4px;padding:6px 10px;transform:rotate(-1.5deg);white-space:nowrap}
+
+.notice{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13.5px;color:var(--muted)}
+.notice b{color:var(--fg)}
+
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.controls input,.controls select{font:inherit;font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;min-width:0}
+.controls input{flex:1 1 220px}
+.controls select{flex:0 1 auto}
+.count{font:500 13px var(--f-mono);color:var(--muted);margin-left:auto}
+
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:980px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11.5px/1.2 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--sunk);position:sticky;top:0;white-space:nowrap}
+th button{all:unset;cursor:pointer}
+th button:focus-visible{outline:2px solid var(--accent)}
+th .arr{opacity:.5;margin-left:4px}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover{background:var(--accent-soft)}
+tbody tr:last-child td{border-bottom:0}
+td.name strong{display:block;font-weight:600}
+td.name span{font-size:12.5px;color:var(--muted)}
+td.date{font:400 13.5px var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.est{display:inline-block;font:500 10.5px var(--f-mono);letter-spacing:.04em;color:var(--soon);background:var(--soon-bg);border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:1px}
+.pill{display:inline-flex;align-items:center;gap:6px;font:600 12px/1 var(--f-body);border-radius:999px;padding:5px 10px;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.s-open{color:var(--open);background:var(--open-bg)}
+.s-upcoming{color:var(--soon);background:var(--soon-bg)}
+.s-closed{color:var(--closed);background:var(--closed-bg)}
+.s-varies,.s-tbc{color:var(--vary);background:var(--vary-bg)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:4px;padding:2px 6px;white-space:nowrap}
+.fund-full{color:var(--open);font-weight:600}
+.fund-partial{color:var(--soon);font-weight:600}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+
+/* detail */
+.back{all:unset;cursor:pointer;font:500 14px var(--f-body);color:var(--accent);display:inline-flex;gap:6px;align-items:center}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.dhead{display:flex;flex-direction:column;gap:10px}
+.dhead .sub{color:var(--muted);max-width:70ch;margin:0}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.facts div{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.facts .v{font-weight:600}
+.grid2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.links{display:flex;flex-direction:column;gap:10px}
+.lk{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--fg)}
+.lk:hover{border-color:var(--accent);background:var(--accent-soft)}
+.lk .t{font-weight:600;color:var(--accent)}
+.lk .u{font:12px var(--f-mono);color:var(--muted);overflow-wrap:anywhere}
+.lk .n{font-size:12.5px;color:var(--soon)}
+.progress{height:8px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--open);width:0;transition:width .25s}
+.checklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.checklist li{border-top:1px solid var(--line)}
+.checklist li:first-child{border-top:0}
+.checklist label{display:flex;gap:12px;padding:10px 2px;cursor:pointer;align-items:flex-start}
+.checklist input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--open);flex:none}
+.checklist .d{display:flex;flex-direction:column;gap:2px}
+.checklist .d small{color:var(--muted);font-size:12.5px}
+.checklist input:checked + .d > span{text-decoration:line-through;color:var(--muted)}
+.linkbtn{all:unset;cursor:pointer;font-size:13px;color:var(--accent)}
+.linkbtn:focus-visible{outline:2px solid var(--accent)}
+.stages{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.stages li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;position:relative;padding-bottom:16px}
+.stages li:last-child{padding-bottom:0}
+.stages li::after{content:"";position:absolute;left:13px;top:28px;bottom:0;width:2px;background:var(--line)}
+.stages li:last-child::after{display:none}
+.dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;font:600 12px var(--f-mono);color:var(--muted)}
+.stages li.done .dot{background:var(--closed-bg);color:var(--closed)}
+.stages li.now .dot{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.stages .when{font:500 12.5px var(--f-mono);color:var(--muted)}
+.stages li.now .when{color:var(--accent)}
+.stages p{margin:2px 0 0;font-size:13.5px;color:var(--muted)}
+.covers{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.callout{border-left:3px solid var(--soon);background:var(--soon-bg);padding:10px 14px;border-radius:0 8px 8px 0;font-size:13.5px}
+.srcs{font-size:13px;color:var(--muted);margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.srcs a{overflow-wrap:anywhere}
+footer{font-size:13px;color:var(--muted);max-width:80ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">International scholarships · Bachelor · Master · PhD</div>
+      <h1>Scholarship Atlas</h1>
+      <p>Every scholarship in one ledger. Open a row for its handbook, official website, a document checklist you can tick off, and the selection stages.</p>
+    </div>
+    <div class="asof">Dates checked 2 Nov 2026</div>
+  </header>
+
+  <main id="listView">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="notice"><b>Dates marked <span class="est">EXPECTED</span> are not yet announced.</b> They follow the previous cycle's pattern and may change. Always confirm on the official website before you plan around a date.</div>
+      <div class="controls">
+        <input id="q" type="search" placeholder="Search name, country or issuer" aria-label="Search scholarships">
+        <select id="fRegion" aria-label="Region"><option value="">All regions</option><option>Asia</option><option>Europe</option><option>Americas</option><option>Middle East</option><option>Oceania</option></select>
+        <select id="fCountry" aria-label="Country"><option value="">All countries</option></select>
+        <select id="fStage" aria-label="Education stage"><option value="">All stages</option><option>Bachelor</option><option>Master</option><option>PhD</option></select>
+        <select id="fFund" aria-label="Funding"><option value="">Fully or partial</option><option value="Fully funded">Fully funded</option><option value="Partially funded">Partially funded</option></select>
+        <select id="fStatus" aria-label="Status"><option value="">Any status</option><option value="open">Open now</option><option value="upcoming">Upcoming</option><option value="varies">Varies by course</option><option value="tbc">Not yet announced</option><option value="closed">Closed</option></select>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="tablebox">
+        <table>
+          <thead><tr>
+            <th><button data-sort="name">Scholarship Name<span class="arr"></span></button></th>
+            <th><button data-sort="country">Country<span class="arr"></span></button></th>
+            <th><button data-sort="issuer">Issuer<span class="arr"></span></button></th>
+            <th><button data-sort="open">Application Open<span class="arr"></span></button></th>
+            <th><button data-sort="deadline">Application Deadline<span class="arr"></span></button></th>
+            <th>Education Stage</th>
+            <th><button data-sort="funding">Funding<span class="arr"></span></button></th>
+            <th><button data-sort="status">Status<span class="arr"></span></button></th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <section id="detailView" hidden></section>
+
+  <footer>This list covers <span id="total"></span> major international programmes. It is a growing set, not every scholarship in the world. Requirements and documents summarise each programme's typical process and can differ by country of citizenship or by intake. Checklist ticks are saved only in this browser.</footer>
+</div>
+
+<script>
+const TODAY = new Date('2026-11-02T12:00:00');
+
+/* d: ISO date or null; est: true when not officially announced; txt: shown instead of a date */
+const DATA = [
+{
+  id:"chevening", name:"Chevening Scholarships", cycle:"2027/28 intake",
+  country:"United Kingdom", issuer:"UK Foreign, Commonwealth & Development Office (FCDO)",
+  open:{d:"2026-08-04"}, deadline:{d:"2026-10-06", note:"11:00 UTC"},
+  stages:["Master"], funding:"Fully funded",
+  summary:"One-year master's degree at a UK university for emerging leaders. Applicants choose three eligible UK courses and must return home for at least two years after the award.",
+  next:"The 2027/28 round has closed. Chevening usually opens in early August, so the 2028/29 round is expected around August 2027. Not yet announced.",
+  covers:["University tuition fees","Monthly living allowance","Return economy flight to the UK","Arrival and departure allowances, visa application cost"],
+  website:{url:"https://www.chevening.org/", label:"chevening.org"},
+  handbook:{url:"https://www.chevening.org/scholarships/application-timeline/", label:"Application timeline & guidance"},
+  docs:[
+    ["Valid passport or national ID",""],
+    ["Undergraduate degree certificate and transcripts","Upload when shortlisted"],
+    ["Two reference letters","Requested through the application system"],
+    ["Four essays: leadership, networking, studying in the UK, career plan","500 words max each"],
+    ["Three eligible UK master's course choices",""],
+    ["University applications to your three courses","Run in parallel with Chevening"],
+    ["At least one unconditional university offer","Due 8 Jul 2027, 17:00 BST"],
+    ["Proof of work experience","Two years (2,800 hours) is the usual minimum"]
+  ],
+  steps:[
+    ["Online application","4 Aug – 6 Oct 2026","Essays, references and course choices submitted online.","2026-08-04"],
+    ["Eligibility screening & reading committee","Oct 2026 – Jan 2027","Applications are checked and scored.","2026-10-07"],
+    ["Interview shortlist","Mid-Feb 2027","Shortlisted applicants upload documents.","2027-02-15"],
+    ["Interview at the British Embassy","Mar – Apr 2027","In person or online.","2027-03-01"],
+    ["Results","From mid-Jun 2027","Conditional award offers sent.","2027-06-15"],
+    ["Unconditional university offer deadline","8 Jul 2027","Award is cancelled without it.","2027-07-08"],
+    ["Studies begin in the UK","Sep – Oct 2027","","2027-09-15"]
+  ],
+  sources:[["Chevening (New Zealand page)","https://www.chevening.org/?p=2574"],["University of Kent scholarship page","https://kent.ac.uk/scholarships/search/FNADCHEVEN02"]]
+},
+{
+  id:"aas-indonesia", name:"Australia Awards Scholarships (Indonesia)", cycle:"2027 intake",
+  country:"Australia", issuer:"Australian Government, DFAT",
+  open:{d:"2026-02-01"}, deadline:{d:"2026-04-30", note:"20:59 WIB / 14:00 AEST"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  summary:"Long-term development scholarships for postgraduate study in Australia. Priority goes to fields that match Indonesia–Australia development goals. Indonesia also has LPDP–Australia Awards co-funded places.",
+  next:"The 2027 intake closed on 30 Apr 2026. Based on the usual pattern, the 2028 intake is expected to open around 1 Feb 2027 and close around 30 Apr 2027. Not yet announced.",
+  covers:["Full tuition fees","Return air travel","Establishment allowance","Contribution to living expenses","Overseas Student Health Cover","Pre-course English and academic preparation"],
+  website:{url:"https://www.australiaawardsindonesia.org/id/Howtoapply", label:"Australia Awards in Indonesia: How to apply"},
+  handbook:{url:"https://www.dfat.gov.au/people-to-people/australia-awards/participating-countries/indonesia-information-for-intake", label:"DFAT: Indonesia intake information", note:"Refers to the Australia Awards Scholarships Policy Handbook for entitlements and conditions."},
+  docs:[
+    ["KTP (Indonesian ID) and passport if available",""],
+    ["Bachelor's (and master's for PhD) certificates","Certified copies"],
+    ["Academic transcripts",""],
+    ["Curriculum vitae",""],
+    ["English test result (IELTS/TOEFL), if you already have one","Shortlisted applicants may be tested"],
+    ["Referee reports",""],
+    ["Answers to development-impact questions","How your study links to Indonesia's development"],
+    ["Employer support letter, if employed","Required for some categories, e.g. civil servants"]
+  ],
+  steps:[
+    ["Online application","1 Feb – 30 Apr 2026","Single application form on the Australia Awards Indonesia site.","2026-02-01"],
+    ["Shortlisting","Mid-2026","","2026-05-15"],
+    ["IELTS test & joint selection interview","Mid-2026","For shortlisted applicants.","2026-06-15"],
+    ["Final results","By about Aug 2026","","2026-08-15"],
+    ["Pre-departure training","Late 2026","English and academic preparation in Indonesia.","2026-09-15"],
+    ["Studies begin in Australia","2027","","2027-01-15"]
+  ],
+  sources:[["Study Australia (Australian Government)","https://www.studyaustralia.gov.au/en/tools-and-resources/news/australia-awards-scholarships-applications-2027"],["Australia Awards in Indonesia","https://www.australiaawardsindonesia.org/id/Howtoapply"]]
+},
+{
+  id:"lpdp", name:"LPDP Scholarship", cycle:"2027 Batch 1 (Tahap 1)",
+  country:"Indonesia (study at home or abroad)", issuer:"LPDP, Ministry of Finance of Indonesia",
+  open:{d:"2027-01-22", est:true}, deadline:{d:"2027-02-23", est:true},
+  stages:["Master","PhD"], funding:"Fully funded",
+  summary:"Indonesian government scholarship for master's and doctoral study at universities in Indonesia or overseas. Open to Indonesian citizens only. Several schemes exist (general, affirmation, targeted, double degree), and some cover only part of the costs.",
+  next:"2026 ran two batches: Batch 1 about 22 Jan – 23 Feb 2026 and Batch 2 from 30 Jun – 31 Jul 2026. The 2027 dates shown are an estimate from the 2026 Batch 1 window.",
+  covers:["Tuition fees","Monthly living allowance","Return travel","Health insurance","Other allowances, depending on the scheme"],
+  website:{url:"https://lpdp.kemenkeu.go.id/", label:"lpdp.kemenkeu.go.id"},
+  handbook:{url:"https://lpdp.kemenkeu.go.id/", label:"Registration guidebook (Buku Panduan)", note:"Published on the LPDP site for each batch; download the one for your scheme."},
+  docs:[
+    ["KTP (Indonesian ID)",""],
+    ["Bachelor's / master's diploma (ijazah)",""],
+    ["Academic transcript",""],
+    ["Valid English (or other language) test certificate","Minimum score depends on scheme and destination"],
+    ["Recommendation letter","Format set by LPDP"],
+    ["Personal statement / essay on contribution to Indonesia",""],
+    ["Study plan","Plus research proposal for PhD"],
+    ["Signed statement letters","Templates on the LPDP portal"],
+    ["Letter of Acceptance, if you already have one","Required for some schemes"]
+  ],
+  steps:[
+    ["Online registration","Expected late Jan – late Feb 2027","Account and application on the LPDP registration portal.","2027-01-22"],
+    ["Administrative selection","After registration closes","Document check.","2027-02-24"],
+    ["Scholastic / talent test","Spring 2027","Online test.","2027-03-20"],
+    ["Substance selection (interview)","Spring 2027","Interview with a panel.","2027-04-20"],
+    ["Final announcement","Around Jun 2027","In 2025, Batch 1 results came on 19 Jun.","2027-06-19"],
+    ["Pre-departure / leadership programme","After the award","","2027-07-15"]
+  ],
+  sources:[["Kompas TV: LPDP Batch 2 2026 (30 Jun – 31 Jul 2026)","https://www.kompas.tv/info-publik/678387/beasiswa-lpdp-tahap-2-2026-masih-dibuka-ini-cara-daftar-dan-buat-akun-baru"],["Kontan: 2025 Batch 1 schedule","https://momsmoney.kontan.co.id/news/ini-jadwal-seleksi-beasiswa-lpdp-2025-tahap-pertama-buka-hingga-17-februari"]]
+},
+{
+  id:"fulbright-aminef", name:"Fulbright Master's & Doctoral (Indonesia)", cycle:"Next round",
+  country:"United States", issuer:"U.S. Department of State, administered by AMINEF",
+  open:{d:null, txt:"Not yet announced"}, deadline:{d:null, txt:"Check AMINEF"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  summary:"Degree scholarships at U.S. universities for Indonesian citizens in most fields (clinical medical study is excluded). Grantees hold a J-1 visa and are expected to return to Indonesia.",
+  next:"I could not confirm the next deadline. Older AMINEF calls used a deadline around 15 February, but that may have changed. Check the AMINEF page directly.",
+  covers:["Tuition and fees","Monthly living stipend","Health coverage","Round-trip airfare"],
+  website:{url:"https://www.aminef.or.id/grants-for-indonesians/fulbright-programs/scholarship/", label:"AMINEF: Fulbright scholarships"},
+  handbook:{url:"https://www.aminef.or.id/grants-for-indonesians/fulbright-programs/scholarship/", label:"Eligibility & submission requirements", note:"The application form and current requirements are posted on this page."},
+  docs:[
+    ["Completed AMINEF application form","Includes study objective"],
+    ["KTP or passport",""],
+    ["Bachelor's (and master's for PhD) diploma and transcripts","Certified English translations"],
+    ["English test score (TOEFL ITP/iBT or IELTS)",""],
+    ["Curriculum vitae",""],
+    ["Reference letters","Usually three"],
+    ["Research proposal","PhD applicants"]
+  ],
+  steps:[
+    ["Submit application to AMINEF","See AMINEF","",null],
+    ["Document screening","",""],
+    ["Interview in Indonesia","","Shortlisted applicants."],
+    ["Nomination to the U.S. Fulbright selection board","",""],
+    ["University placement via IIE","","Placement in U.S. universities."],
+    ["Departure for the U.S.","",""]
+  ],
+  sources:[["AMINEF (link shown in university announcements)","https://plb.fip.unesa.ac.id/page/fulbright-masters-and-fulbright-doctoral-degree-scholarships"]]
+},
+{
+  id:"mext-research", name:"MEXT Scholarship: Research Students (Embassy)", cycle:"2027 intake",
+  country:"Japan", issuer:"Japanese Government (MEXT), via Embassies of Japan",
+  open:{d:"2026-04-22"}, deadline:{d:null, txt:"May–Jun 2026, varies by embassy"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  summary:"Graduate research study in Japan, often starting as a non-regular research student before entering a master's or doctoral programme. Each Embassy of Japan sets its own deadline and exam dates.",
+  next:"The 2027 embassy round closed in mid-2026 in the countries I checked. I did not find the specific deadline for the Embassy of Japan in Indonesia. The 2028 round is expected to open around April 2027.",
+  covers:["Tuition, entrance exam and admission fees","Monthly stipend (around ¥143,000–145,000 in 2026; verify)","Round-trip airfare"],
+  website:{url:"https://www.studyinjapan.go.jp/en/smap-stopjus-applications-research.html", label:"Study in Japan: Research Students"},
+  handbook:{url:"https://www.studyinjapan.go.jp/en/_mt/2026/04/01-2027_Research_Guidelines_E.pdf", label:"2027 Research Student Application Guidelines (PDF)"},
+  docs:[
+    ["MEXT application form",""],
+    ["Placement preference form",""],
+    ["Field of study and research plan","The most important document"],
+    ["Academic transcripts",""],
+    ["Graduation certificate or expected graduation certificate",""],
+    ["Recommendation letter from dean or supervisor",""],
+    ["Abstract of graduation thesis",""],
+    ["Language proficiency certificate (JLPT / English), if any",""],
+    ["Certificate of health","Embassy form"],
+    ["Passport-size photos",""]
+  ],
+  steps:[
+    ["Apply to your Embassy of Japan","Opened 22 Apr 2026","Deadline set by each embassy.","2026-04-22"],
+    ["Document screening","Mid-2026","","2026-06-01"],
+    ["Written exam & interview","Mid-2026","English and Japanese; field subject for some.","2026-07-01"],
+    ["Embassy recommendation to MEXT","Mid–late 2026","","2026-08-15"],
+    ["Obtain provisional acceptance from a Japanese university","Late 2026","Contact professors directly.","2026-10-01"],
+    ["MEXT final selection & placement","Early 2027","","2027-01-15"],
+    ["Departure for Japan","Apr or Sep/Oct 2027","","2027-04-01"]
+  ],
+  sources:[["Embassy of Japan in Maldives: 2027 timeline","https://www.mv.emb-japan.go.jp/itpr_ja/11_000001_00756.html"],["Embassy of Japan in Kuwait: guideline link","https://www.kw.emb-japan.go.jp/itpr_ja/11_000001_00345.html"]]
+},
+{
+  id:"gks-ug", name:"Global Korea Scholarship: Undergraduate (Embassy track)", cycle:"2027 intake",
+  country:"South Korea", issuer:"NIIED, Ministry of Education of Korea",
+  open:{d:"2026-09-09"}, deadline:{d:"2026-09-30", note:"18:00 KST; embassies may set earlier dates"},
+  stages:["Bachelor"], funding:"Fully funded",
+  summary:"Bachelor's degree in Korea with a one-year Korean language course first. Embassy-track deadlines are set by each Korean embassy; university-track deadlines differ.",
+  next:"The 2027 embassy track has closed. University-track deadlines may still be open at some universities. The 2028 call is expected around September 2027.",
+  covers:["Tuition","Monthly living allowance","Airfare","Korean language course","Medical insurance","Settlement allowance"],
+  website:{url:"https://www.studyinkorea.go.kr/", label:"Study in Korea (NIIED)", warn:"Link from my general knowledge; I did not open it in this check."},
+  handbook:{url:"https://www.mofa.go.kr/ke-en/brd/m_10538/view.do?seq=761541", label:"2027 GKS-U announcement (Embassy of Korea in Kenya)", note:"Your own country's Korean embassy posts the version that applies to you."},
+  docs:[
+    ["GKS application form & personal statement","NIIED forms"],
+    ["Study plan",""],
+    ["Recommendation letter",""],
+    ["High school diploma (apostilled or consular-confirmed)",""],
+    ["High school transcripts (apostilled or consular-confirmed)",""],
+    ["Proof of citizenship of applicant and parents",""],
+    ["Personal medical assessment",""],
+    ["Copy of passport",""],
+    ["TOPIK / English score, if any","Optional; can add points"]
+  ],
+  steps:[
+    ["Apply to the Korean embassy","Sep 2026","",  "2026-09-09"],
+    ["Embassy 1st selection","Oct 2026","Document review, sometimes an interview.","2026-10-05"],
+    ["University 2nd selection","Nov 2026","","2026-11-10"],
+    ["NIIED 3rd selection","Dec 2026","Medical check.","2026-12-10"],
+    ["Final results","Early 2027","","2027-01-15"],
+    ["Korean language course begins","2027","","2027-03-01"]
+  ],
+  sources:[["Embassy of Korea in Kenya: 2027 GKS-U notice","https://www.mofa.go.kr/ke-en/brd/m_10538/view.do?seq=761541"],["Borderless: track deadlines","https://borderless.so/fr/scholarships/gks/global-korea-scholarship"]]
+},
+{
+  id:"gks-grad", name:"Global Korea Scholarship: Graduate", cycle:"2027 intake",
+  country:"South Korea", issuer:"NIIED, Ministry of Education of Korea",
+  open:{d:"2027-02-01", est:true}, deadline:{d:"2027-03-15", est:true, note:"Varies by embassy / university"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  summary:"Master's and doctoral study in Korea, usually with a one-year Korean language course first. Apply through a Korean embassy or directly through a designated university.",
+  next:"As of September 2026 the 2027 graduate call had not been published. The dates shown are an estimate from earlier cycles (February–March).",
+  covers:["Tuition","Monthly living allowance","Airfare","Korean language course","Medical insurance","Research and thesis support"],
+  website:{url:"https://www.studyinkorea.go.kr/", label:"Study in Korea (NIIED)", warn:"Link from my general knowledge; I did not open it in this check."},
+  handbook:{url:"https://www.studyinkorea.go.kr/", label:"GKS-G Application Guidelines", note:"Posted when the 2027 call is published."},
+  docs:[
+    ["GKS application form, personal statement & study plan",""],
+    ["Two recommendation letters",""],
+    ["Bachelor's (and master's for PhD) diploma, apostilled",""],
+    ["Transcripts, apostilled",""],
+    ["Proof of citizenship of applicant and parents",""],
+    ["Personal medical assessment",""],
+    ["Copy of passport",""],
+    ["TOPIK / English score, if any",""],
+    ["Published papers, for PhD applicants (optional)",""]
+  ],
+  steps:[
+    ["Apply to embassy or university","Expected Feb–Mar 2027","","2027-02-01"],
+    ["1st selection","Spring 2027","",  "2027-04-01"],
+    ["University selection","Spring 2027","","2027-05-01"],
+    ["NIIED final selection","Mid-2027","","2027-06-15"],
+    ["Korean language course begins","Sep 2027","","2027-09-01"]
+  ],
+  sources:[["Borderless: graduate call not yet published (checked 13 Sep 2026)","https://borderless.so/pt/scholarships/gks/global-korea-scholarship"]]
+},
+{
+  id:"stipendium-hungaricum", name:"Stipendium Hungaricum", cycle:"2027/28 academic year",
+  country:"Hungary", issuer:"Government of Hungary, via Tempus Public Foundation",
+  open:{d:"2026-11-17", est:true}, deadline:{d:"2027-01-15", est:true, note:"14:00 CET"},
+  stages:["Bachelor","Master","PhD"], funding:"Fully funded",
+  summary:"Study at Hungarian universities for citizens of Sending Partner countries. You apply online and must also be nominated by your country's Sending Partner. You can pick up to two programmes.",
+  next:"The 2026/27 round opened around 17 Nov 2025 and closed 15 Jan 2026, 14:00 CET. The 2027/28 dates shown are an estimate from that cycle.",
+  covers:["Tuition-free study","Monthly stipend (may not cover all living costs)","Dormitory place or housing contribution","Medical insurance"],
+  website:{url:"https://stipendiumhungaricum.hu/", label:"stipendiumhungaricum.hu"},
+  handbook:{url:"https://stipendiumhungaricum.hu/wp-content/uploads/2025/11/Application_Guide_for_the_Stipendium_Hungaricum_Programme_2026_27_final.pdf", label:"Application Guide 2026/27 (PDF, previous cycle)", note:"Replace with the 2027/28 guide once published."},
+  docs:[
+    ["Passport copy",""],
+    ["Secondary / bachelor's / master's diploma",""],
+    ["Transcript of records",""],
+    ["Language certificate (English or Hungarian)",""],
+    ["Motivation letter","Built into the online form"],
+    ["Medical certificate","Template provided"],
+    ["Recommendation letter(s)","Required for PhD and some programmes"],
+    ["Research plan and supervisor letter","PhD applicants"],
+    ["Sending Partner's own documents","Check your country's nominating body"]
+  ],
+  steps:[
+    ["Online application","Expected mid-Nov 2026 – 15 Jan 2027","Choose up to two programmes in order of preference.","2026-11-17"],
+    ["Sending Partner nomination","Feb 2027","","2027-02-01"],
+    ["University entrance exam / interview","Mar – May 2027","","2027-03-01"],
+    ["Results from Tempus","Jun – Jul 2027","","2027-06-15"],
+    ["Studies begin","Sep 2027","","2027-09-01"]
+  ],
+  sources:[["Stipendium Hungaricum news, 17 Nov 2025","https://stipendiumhungaricum.hu/news/application-is-on-for-the-2026-2027-stipendium-hungaricum-scholarship/"],["Semmelweis University: 2026/27 deadline","https://semmelweis.hu/mobilitas/en/stipendium-hungaricum/"]]
+},
+{
+  id:"turkiye-burslari", name:"Türkiye Bursları (Türkiye Scholarships)", cycle:"2027 intake",
+  country:"Türkiye", issuer:"Presidency for Turks Abroad and Related Communities (YTB)",
+  open:{d:"2027-01-10", est:true}, deadline:{d:"2027-02-20", est:true},
+  stages:["Bachelor","Master","PhD"], funding:"Fully funded",
+  summary:"Government scholarship covering university placement in Türkiye plus a one-year Turkish language course. You can list up to 12 university/programme preferences in one application.",
+  next:"YTB had not officially confirmed 2027 dates in the sources I found. The dates shown follow YTB's usual 10 Jan – 20 Feb window.",
+  covers:["Tuition","Monthly stipend","Accommodation","Health insurance","Round-trip flight","One-year Turkish language course"],
+  website:{url:"https://www.turkiyeburslari.gov.tr/", label:"turkiyeburslari.gov.tr", warn:"Domain appears in search results; I did not open the page in this check."},
+  handbook:{url:"https://www.turkiyeburslari.gov.tr/", label:"Application guide & FAQ on the official site"},
+  docs:[
+    ["Passport or national ID",""],
+    ["Recent photo",""],
+    ["Diploma or expected graduation letter",""],
+    ["Academic transcript",""],
+    ["National exam results","Bachelor applicants"],
+    ["Language test scores (optional)",""],
+    ["Statement of intent","Written in the online form"],
+    ["Research proposal","PhD applicants"],
+    ["Reference letter(s)","Optional or required depending on level"]
+  ],
+  steps:[
+    ["Online application (TBBS)","Expected 10 Jan – 20 Feb 2027","One application per cycle.","2027-01-10"],
+    ["Preliminary evaluation","Mar – Apr 2027","",  "2027-03-15"],
+    ["Interview","Apr – Jun 2027","Online or in person.","2027-04-20"],
+    ["Placement and results","Jul – Aug 2027","","2027-07-15"],
+    ["Turkish preparatory year","From Sep 2027","Then degree studies begin.","2027-09-15"]
+  ],
+  sources:[["Makeover Arena: 2027 dates not yet officially confirmed","https://www.makeoverarena.com/blog/?p=19784"],["ScholarshipUnion: usual 10 Jan – 20 Feb window","https://guides.scholarshipunion.com/turkiye-burslari/deadline.html"]]
+},
+{
+  id:"daad-epos", name:"DAAD EPOS (Development-Related Postgraduate Courses)", cycle:"2027/28 intake",
+  country:"Germany", issuer:"DAAD, funded by the German Ministry for Economic Cooperation (BMZ)",
+  open:{d:null, txt:"Per course"}, deadline:{d:null, txt:"Per course (many Aug–Oct 2026)"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  summary:"Scholarships for professionals from developing countries on a fixed list of development-related postgraduate courses in Germany. You apply to the course, not to DAAD centrally, and can apply to up to three courses.",
+  next:"Each course sets its own deadline. Example: MSc Environmental Governance (Freiburg) ran 15 Jun – 15 Oct 2026. Some courses may still be open; check the DAAD course list.",
+  covers:["Monthly stipend (€992 for graduates in 2026, per one course listing)","Health, accident and liability insurance","Travel allowance","Possible German language course before studies"],
+  website:{url:"https://www.daad.de/", label:"daad.de (search “EPOS”)", warn:"Homepage from my general knowledge; the direct EPOS page was not opened in this check."},
+  handbook:{url:"https://static.daad.de/media/daad_de/pdfs_nicht_barrierefrei/in-deutschland-studieren-forschen-lehren/epos_checkliste.pdf", label:"DAAD EPOS application checklist (PDF)"},
+  docs:[
+    ["DAAD application form","Signed"],
+    ["Europass CV",""],
+    ["Motivation letter","Link to your work and home country's development"],
+    ["Employer letter","Confirms work experience and, ideally, reemployment"],
+    ["Proof of at least two years' professional experience",""],
+    ["Recommendation letter(s)",""],
+    ["Bachelor's degree certificate and transcripts",""],
+    ["Language certificate (English and/or German)",""]
+  ],
+  steps:[
+    ["Choose up to three EPOS courses","Before course deadlines","",null],
+    ["Apply directly to each course","Per course",""],
+    ["Course pre-selection","After deadline","University reviews applications."],
+    ["DAAD selection committee","Early 2027",""],
+    ["Results","Spring 2027",""],
+    ["Studies begin","Winter semester 2027/28",""]
+  ],
+  sources:[["ProPakistani: Freiburg MEG EPOS deadline","https://propakistani.pk/edunation/?p=7071"],["DAAD EPOS factsheet (copy)","https://indesgua.org.gt/wp-content/plugins/download-attachments/includes/download.php?id=26694"]]
+},
+{
+  id:"erasmus-mundus", name:"Erasmus Mundus Joint Masters", cycle:"2027 intake",
+  country:"European Union (multiple countries)", issuer:"European Union, Erasmus+ (EACEA)",
+  open:{d:null, txt:"Per programme (mostly Oct 2026)"}, deadline:{d:null, txt:"Per programme (mostly by Jan 2027)"},
+  stages:["Master"], funding:"Fully funded",
+  summary:"Joint master's degrees run by groups of universities; you study in at least two countries. There is no central application: you apply to each programme, and each awards its own scholarships. Not every admitted student receives a scholarship.",
+  next:"Most programmes take applications between October 2026 and January 2027, but some close earlier. 37 new programmes were added for the 2027 intake.",
+  covers:["Participation costs (tuition)","Monthly allowance (up to €1,400 under current rules)","Travel and visa costs, depending on programme"],
+  website:{url:"https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en", label:"Erasmus Mundus catalogue (EACEA)", warn:"Link from my general knowledge; I did not open it in this check."},
+  handbook:{url:"https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en", label:"Each programme's own admission rules", note:"Requirements differ by programme; read the one you apply to."},
+  docs:[
+    ["Bachelor's degree certificate (or proof of final year)",""],
+    ["Transcripts",""],
+    ["CV",""],
+    ["Motivation letter",""],
+    ["Recommendation letters","Usually two"],
+    ["English test certificate",""],
+    ["Passport copy",""],
+    ["Residence certificate","Determines scholarship eligibility"]
+  ],
+  steps:[
+    ["Pick programmes from the catalogue","Now","",null],
+    ["Apply on each programme's portal","Oct 2026 – Jan 2027",""],
+    ["Consortium selection","Feb – Mar 2027","Some programmes interview."],
+    ["Results","Mar – Apr 2027",""],
+    ["Studies begin","Sep 2027",""]
+  ],
+  sources:[["Scholarships Central: 37 new programmes for 2027","https://www.scholarshipscentral.com/blog/erasmus-mundus-joint-masters-2027-fully-funded"],["IndiaScholarships: typical Oct–Jan window","https://www.indiascholarships.in/scholarships/erasmus-mundus-joint-masters-scholarships/last-date"]]
+}
+];
+
+const MORE = [
+{
+  id:"csc-china", region:"Asia", name:"Chinese Government Scholarship (CSC)", cycle:"2027/28 · Embassy route (Indonesia)",
+  country:"China", issuer:"China Scholarship Council, via Chinese Embassy in Indonesia",
+  open:{d:"2026-10-27"}, deadline:{d:"2027-02-14", note:"Submit before 14 Feb 2027 (Indonesia embassy route)"},
+  stages:["Bachelor","Master","PhD"], funding:"Fully funded",
+  who:"Non-Chinese citizens. Age limits: under 25 (bachelor), under 35 (master), under 40 (PhD). Other countries' embassies set their own deadlines.",
+  summary:"Chinese government scholarship for degree and non-degree study at Chinese universities. The Indonesia embassy route includes the China–Indonesia Higher Education Program (20 places in marine, medical, health, tourism and education fields).",
+  next:"Apply online on the CSC system with agency number 3602 (Indonesia embassy). No paper documents go to the embassy.",
+  covers:["Tuition","Accommodation","Monthly stipend","Medical insurance","Note: the China–Indonesia programme does not cover international travel"],
+  website:{url:"https://www.campuschina.org/", label:"Campus China (CSC application system)", warn:"Domain named on the embassy notice; I did not open it in this check."},
+  handbook:{url:"https://id.china-embassy.gov.cn/eng/sgdt/202610/t20261027_12047753.htm", label:"Embassy of China in Indonesia: 2027/28 call"},
+  docs:[
+    ["Application form (Chinese or English)","Printed from the CSC online system"],
+    ["Passport information page","Valid 12+ months after expected start"],
+    ["Notarized highest diploma",""],
+    ["Academic transcripts",""],
+    ["Language certificate: HSK (Chinese-taught) or IELTS/TOEFL","HSK 4 for master's/PhD Chinese-taught programmes"],
+    ["Pre-admission letter from at least one Chinese university",""],
+    ["Study plan or research proposal","800+ words for postgraduates"],
+    ["Two recommendation letters (graduate applicants)","From professors or associate professors"],
+    ["CSCA score report (bachelor applicants)","Test taken after 1 Mar 2025"],
+    ["Foreigner Physical Examination Form","Valid 6 months"],
+    ["Non-criminal record certificate","Issued within 6 months"]
+  ],
+  steps:[
+    ["Contact universities and get a pre-admission letter","From 27 Oct 2026","","2026-10-27"],
+    ["Submit online application (agency 3602)","Before 14 Feb 2027","","2026-10-28"],
+    ["Embassy review and recommendation to CSC","15 Feb – 1 Mar 2027","","2027-02-15"],
+    ["CSC final review","Spring 2027","","2027-03-02"],
+    ["Results in the online system","Jul – Aug 2027","Download admission notice and JW201 visa form.","2027-07-01"],
+    ["Studies begin","Sep 2027","","2027-09-01"]
+  ],
+  sources:[["Embassy of China in Indonesia, 27 Oct 2026","https://id.china-embassy.gov.cn/eng/sgdt/202610/t20261027_12047753.htm"]]
+},
+{
+  id:"hkpfs", region:"Asia", name:"Hong Kong PhD Fellowship Scheme (HKPFS)", cycle:"2027/28",
+  country:"Hong Kong SAR, China", issuer:"Research Grants Council (RGC) of Hong Kong",
+  open:{d:"2026-09-01"}, deadline:{d:"2026-12-01", note:"Step 1 closes 12:00 noon HKT; university step closes 23:59 HKT"},
+  stages:["PhD"], funding:"Fully funded",
+  who:"Open to applicants of any nationality applying for full-time PhD study at a participating Hong Kong university.",
+  summary:"Around 400 fellowships a year for PhD study at Hong Kong universities. You register with the RGC first, then apply to the university with your HKPFS reference number.",
+  covers:["Annual stipend HK$344,400 (2027/28)","Conference and research travel allowance HK$14,400 a year","Tuition waiver at some universities (e.g. PolyU)","University-specific extras such as housing"],
+  website:{url:"https://gradsch.hku.hk/hkpfs", label:"HKU Graduate School: HKPFS", note:"Each university has its own HKPFS page."},
+  handbook:{url:"https://www.polyu.edu.hk/ls/news-and-events/news/2026/20260904_hkpfs-202728/", label:"PolyU: HKPFS 2027/28 announcement"},
+  docs:[
+    ["RGC HKPFS online registration (reference number)","Step 1"],
+    ["University PhD application","Step 2, quoting the reference number"],
+    ["Research proposal",""],
+    ["CV / personal statement",""],
+    ["Degree certificates and transcripts",""],
+    ["English test score, if required by the university",""],
+    ["Two referee reports",""]
+  ],
+  steps:[
+    ["Register on the RGC HKPFS system","1 Sep – 1 Dec 2026 (noon HKT)","","2026-09-01"],
+    ["Apply to up to two universities","By 1 Dec 2026","","2026-09-02"],
+    ["University shortlisting and interview","Dec 2026 – Feb 2027","","2026-12-02"],
+    ["RGC selection","Spring 2027","","2027-03-01"],
+    ["Results","Around Apr – May 2027","","2027-04-15"],
+    ["PhD starts","Sep 2027","","2027-09-01"]
+  ],
+  sources:[["PolyU news, 4 Sep 2026","https://www.polyu.edu.hk/ls/news-and-events/news/2026/20260904_hkpfs-202728/"]]
+},
+{
+  id:"taiwanicdf", region:"Asia", name:"TaiwanICDF International Higher Education Scholarship", cycle:"2027 intake",
+  country:"Taiwan", issuer:"International Cooperation and Development Fund (TaiwanICDF)",
+  open:{d:"2026-12-01", est:true}, deadline:{d:"2027-03-15", est:true},
+  stages:["Bachelor","Master","PhD"], funding:"Fully funded",
+  who:"Only citizens of TaiwanICDF partner countries. I could not confirm whether Indonesia is on the 2027 list. Bachelor places are only for countries with diplomatic ties to Taiwan.",
+  summary:"English-taught degree programmes at Taiwanese partner universities. You may apply to one programme per cycle.",
+  covers:["Round-trip economy airfare","Tuition and credit fees","Dormitory","Monthly allowance (NT$15,000–20,000 by level)","Medical and accident insurance","Textbooks"],
+  website:{url:"https://www.icdf.org.tw/", label:"icdf.org.tw", warn:"Domain named in third-party guides; I did not open it in this check."},
+  handbook:{url:"https://www.icdf.org.tw/", label:"2027 Guidebook and Programs Available list", note:"Expected around 1 Dec 2026."},
+  docs:[
+    ["TaiwanICDF online application form (printed and signed)",""],
+    ["Certified academic transcripts",""],
+    ["Highest diploma","Must be obtained by 31 Jul 2027"],
+    ["Passport copy",""],
+    ["Health certificate (TaiwanICDF format)",""],
+    ["Statement of purpose",""],
+    ["Two recommendation letters","Often required by the university"],
+    ["English test score, if the programme requires it",""]
+  ],
+  steps:[
+    ["Download guidebook, choose one programme","From Dec 2026 (expected)","","2026-12-01"],
+    ["Online application + separate university application","Until mid-Mar 2027 (expected)","",  "2026-12-02"],
+    ["Submit documents to the Taiwan representative office","Check the office's own deadline","","2027-03-16"],
+    ["Interviews (office, then university)","Spring 2027","","2027-04-01"],
+    ["Results","By about 10 Jun 2027","","2027-06-10"],
+    ["Studies begin","Sep 2027","","2027-09-01"]
+  ],
+  sources:[["Gradualin guide (third-party)","https://gradualin.com/taiwanicdf-scholarship-2027-fully-funded-study-taiwan/"]]
+},
+{
+  id:"nus-asean", region:"Asia", name:"ASEAN Undergraduate Scholarship (NUS)", cycle:"AY2027/28",
+  country:"Singapore", issuer:"National University of Singapore",
+  open:{d:null, txt:"With NUS admission"}, deadline:{d:null, txt:"NUS admission deadline"},
+  stages:["Bachelor"], funding:"Fully funded",
+  who:"Citizens of ASEAN countries other than Singapore, including Indonesia. NTU and SUTD run their own ASEAN scholarships too.",
+  summary:"Merit scholarship for ASEAN students starting an undergraduate degree at NUS. There is no separate scholarship form: you are considered through your NUS admission application.",
+  next:"I did not confirm the AY2027/28 admission dates. Check the NUS admissions dates page.",
+  covers:["Tuition after the MOE Tuition Grant","Annual living allowance","Accommodation allowance","Recipients usually sign the Tuition Grant service obligation (work in Singapore for 3 years); verify"],
+  website:{url:"https://nus.edu.sg/oam/scholarships/scholarships-for-freshmen-international-students/asean-undergraduate-scholarship", label:"NUS: ASEAN Undergraduate Scholarship"},
+  handbook:{url:"https://nus.edu.sg/oam/scholarships/important-dates-and-application", label:"NUS scholarships: important dates and application"},
+  docs:[
+    ["NUS undergraduate admission application",""],
+    ["High school results (or forecast grades)",""],
+    ["Passport",""],
+    ["Co-curricular and leadership records",""],
+    ["English proficiency, if required for your qualification",""]
+  ],
+  steps:[
+    ["Apply for NUS undergraduate admission","Per NUS admissions calendar",""],
+    ["Automatic scholarship consideration","",""],
+    ["Interview, if shortlisted","",""],
+    ["Offer of admission and scholarship","",""],
+    ["Studies begin","Aug 2027",""]
+  ],
+  sources:[["NUS scholarships page","https://nus.edu.sg/oam/scholarships/important-dates-and-application"]]
+},
+{
+  id:"brunei-bdgs", region:"Asia", name:"Brunei Darussalam Government Scholarship", cycle:"2027/28 intake",
+  country:"Brunei Darussalam", issuer:"Ministry of Foreign Affairs, Brunei Darussalam",
+  open:{d:null, txt:"Not yet announced"}, deadline:{d:"2027-02-15", est:true},
+  stages:["Bachelor","Master"], funding:"Fully funded",
+  who:"First-time international students. Age limits: 25 for diploma/bachelor, 35 for master's (on 1 July of the start year). Brunei permanent residents are not eligible.",
+  summary:"Diploma, undergraduate and master's study at Universiti Brunei Darussalam, UNISSA, Universiti Teknologi Brunei, KUPU SB or Politeknik Brunei.",
+  next:"The 2026/27 round closed on 15 Feb 2026, 23:59. The 2027/28 date shown assumes a similar mid-February deadline.",
+  covers:["Tuition and fees","Return economy airfare","Monthly allowance BND 500 + meals BND 150","Annual book allowance BND 600","Accommodation","Insurance"],
+  website:{url:"https://www.mfa.gov.bn/", label:"mfa.gov.bn", warn:"Domain named in third-party guides; I did not open it in this check."},
+  handbook:{url:"https://www.education.gov.in/sites/upload_files/mhrd/files/Public_Notice_Brunei_Darussalam_Scholarship_2026_27.pdf", label:"2026/27 notice (Government of India copy, previous cycle)"},
+  docs:[
+    ["Certified passport / birth certificate / national ID",""],
+    ["Certified qualifications and transcripts",""],
+    ["Certified English translations",""],
+    ["Proof of English (IELTS 6.0 / TOEFL 550 or equivalent)",""],
+    ["Proof of employment, if applicable",""],
+    ["References / recommendations",""],
+    ["Research proposal (research programmes only)",""]
+  ],
+  steps:[
+    ["Online application","Expected until mid-Feb 2027",""],
+    ["Interview or written test, if required","Spring 2027",""],
+    ["Results","Around Jun 2027 (tentative)",""],
+    ["Studies begin","Jul – Aug 2027",""]
+  ],
+  sources:[["Opportunities for Africans: 2026/27 summary","https://www.opportunitiesforafricans.com/the-government-of-brunei-darussalam-scholarships-2026-2027-for-foreign-students/"]]
+},
+{
+  id:"gates-cambridge", region:"Europe", name:"Gates Cambridge Scholarship", cycle:"2027/28",
+  country:"United Kingdom", issuer:"Gates Cambridge Trust, University of Cambridge",
+  open:{d:"2026-09-01"}, deadline:{d:"2027-01-06", note:"Course funding deadline; some courses close 8 Dec 2026"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"Citizens of any country outside the UK, applying to a full-time postgraduate course at Cambridge.",
+  summary:"Full-cost scholarships for postgraduate study at the University of Cambridge. You apply through the university's graduate application and tick the Gates box; your course's funding deadline applies.",
+  covers:["University composition fee","Maintenance allowance (up to £22,050/yr at 2025–26 rate)","Return economy airfare and visa costs","Immigration Health Surcharge","Academic development and family allowances"],
+  website:{url:"https://www.gatescambridge.org/", label:"gatescambridge.org", warn:"Homepage from my general knowledge; I did not open it in this check."},
+  handbook:{url:"https://www.gatescambridge.org/", label:"Gates Cambridge: how to apply"},
+  docs:[
+    ["University of Cambridge graduate application",""],
+    ["Gates Cambridge statement",""],
+    ["Additional reference for Gates","Addressing leadership and commitment to others"],
+    ["Transcripts and degree certificates",""],
+    ["CV",""],
+    ["Research proposal (PhD)",""],
+    ["English test (if required by course)",""]
+  ],
+  steps:[
+    ["Apply to Cambridge and opt in to Gates","Sep 2026 – course deadline","","2026-09-01"],
+    ["Department ranking","Dec 2026 – Feb 2027","","2027-01-07"],
+    ["Shortlisting and interviews","Early Mar 2027","","2027-03-01"],
+    ["Final selection panels","22–23 Mar 2027","","2027-03-22"],
+    ["Awards offered","Early Apr 2027","","2027-04-01"]
+  ],
+  sources:[["Afrocareers summary, Aug 2026","https://www.afrocareers.com/2026/08/gates-cambridge-scholarship-2027-fully.html"]]
+},
+{
+  id:"rhodes", region:"Europe", name:"Rhodes Scholarship", cycle:"2027 intake",
+  country:"United Kingdom", issuer:"Rhodes Trust, University of Oxford",
+  open:{d:null, txt:"Per constituency"}, deadline:{d:null, txt:"Per constituency"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"Applicants from Rhodes constituencies, or from anywhere else through the Global Rhodes route. I did not confirm which route applies to Indonesia.",
+  summary:"Postgraduate study at the University of Oxford for public-spirited leaders. Each constituency sets its own deadline, age limits and interview dates.",
+  next:"Most 2027 deadlines were in mid- to late 2026. I could not confirm the exact Global deadline; check Rhodes House.",
+  covers:["Oxford course fees","Annual stipend (£20,400 in 2025-26)","Return airfare, visa and health surcharge (verify)"],
+  website:{url:"https://www.rhodeshouse.ox.ac.uk/", label:"rhodeshouse.ox.ac.uk", warn:"Homepage from my general knowledge; I did not open it in this check."},
+  handbook:{url:"https://www.rhodeshouse.ox.ac.uk/", label:"Constituency pages & application guidance"},
+  docs:[["Personal statement",""],["Academic statement",""],["CV",""],["Transcripts",""],["Four to six references","Varies by constituency"],["Passport / proof of citizenship",""],["Proof of age",""]],
+  steps:[["Online application","Per constituency",""],["Shortlisting","",""],["Interviews","Often with a social event",""],["Award and Oxford admission","",""],["Studies begin","Oct 2027",""]],
+  sources:[["Opportunity Desk summary, Jun 2026","https://opportunitydesk.org/2026/06/01/rhodes-scholarships-2027/"]]
+},
+{
+  id:"commonwealth-masters", region:"Europe", name:"Commonwealth Master's Scholarships", cycle:"2027/28",
+  country:"United Kingdom", issuer:"Commonwealth Scholarship Commission in the UK (FCDO)",
+  open:{d:"2026-09-08"}, deadline:{d:"2026-10-20", note:"16:00 BST"},
+  stages:["Master"], funding:"Fully funded",
+  who:"Citizens of eligible low- and middle-income Commonwealth countries. Indonesia is not a Commonwealth member, so Indonesians are not eligible.",
+  summary:"One-year taught master's degrees in the UK for students from developing Commonwealth countries, judged on merit, study plan and development impact. Some countries apply through a national nominating agency.",
+  next:"The 2027/28 round closed. A new round is expected around September 2027.",
+  covers:["Approved tuition fees","Return airfare","Monthly stipend (£1,712; £2,000 in London)","Study travel grant","Family and disability allowances where eligible"],
+  website:{url:"https://cscuk.fcdo.gov.uk/masters", label:"CSC UK: Commonwealth Master's"},
+  handbook:{url:"https://cscuk.fcdo.gov.uk/masters", label:"Application guidance (CSC UK)"},
+  docs:[["Proof of citizenship (passport or ID)",""],["Full transcripts (with certified translations)",""],["Two references","Uploaded through the system by the deadline"],["Written statements: academic goals and development impact",""],["Nominating agency requirements, if applicable",""]],
+  steps:[["Online application","8 Sep – 20 Oct 2026","","2026-09-08"],["Nomination / screening","Late 2026","","2026-10-21"],["CSC selection","Early 2027","","2027-02-01"],["Results","Spring 2027","","2027-05-01"],["Studies begin","Sep – Oct 2027","","2027-09-15"]],
+  sources:[["Afrocareers summary, Aug 2026","https://www.afrocareers.com/2026/08/commonwealth-masters-scholarships.html"],["University of Kent page","https://www.kent.ac.uk/scholarships/search/FNADCSCMAS01"]]
+},
+{
+  id:"mastercard-edinburgh", region:"Europe", name:"Mastercard Foundation Scholars (University of Edinburgh)", cycle:"2027/28",
+  country:"United Kingdom", issuer:"Mastercard Foundation with the University of Edinburgh",
+  open:{d:"2026-09-15"}, deadline:{d:"2026-11-19", note:"Main application, 17:00 UK; by invitation after 19 Oct declaration"},
+  stages:["Master"], funding:"Fully funded",
+  who:"Citizens, residents or refugees of African countries, born on or after 1 Jan 1992, who faced barriers to education. Not open to Indonesians. Other universities (UCT, Pretoria, UBC, McGill and more) run their own Mastercard programmes.",
+  summary:"Master's and online postgraduate study in climate, food, health and development fields for young African leaders.",
+  covers:["Described as fully funded; check the official page for exact costs covered"],
+  website:{url:"https://www.de.ed.ac.uk/node/1978904", label:"University of Edinburgh programme page", warn:"Link found in search results; I did not open it in this check."},
+  handbook:{url:"https://www.opportunitiesforafricans.com/university-of-edinburgh-mastercard-foundation-scholars-program-2027-2028/", label:"2027/28 timeline summary (third-party)"},
+  docs:[["Attendance at a mandatory info session","15–24 Sep 2026"],["Applicant Declaration Form","By 19 Oct 2026"],["Main scholarship application","By 19 Nov 2026"],["Degree certificate and final transcript",""]],
+  steps:[["Info session","15–24 Sep 2026","","2026-09-15"],["Declaration form","By 19 Oct 2026","","2026-10-13"],["Main application","By 19 Nov 2026","","2026-10-20"],["Interviews","Feb – Mar 2027","","2027-02-15"],["Awards announced","Mar 2027","","2027-03-20"],["Studies begin","Sep 2027","","2027-09-01"]],
+  sources:[["Opportunities for Africans summary","https://www.opportunitiesforafricans.com/university-of-edinburgh-mastercard-foundation-scholars-program-2027-2028/"]]
+},
+{
+  id:"si-sweden", region:"Europe", name:"SI Scholarship for Global Professionals", cycle:"2027/28",
+  country:"Sweden", issuer:"Swedish Institute (SI)",
+  open:{d:"2026-10-15", est:true}, deadline:{d:"2027-01-15", note:"University Admissions deadline; verify the SI scholarship window on si.se"},
+  stages:["Master"], funding:"Fully funded",
+  who:"Citizens of listed countries, including Indonesia, with work and leadership experience, applying to eligible master's programmes.",
+  summary:"One- or two-year master's programmes in Sweden in governance, public health, entrepreneurship/innovation and STEM. First apply to the programme through University Admissions, then to SI with your application number.",
+  next:"The list of eligible programmes is published 13 Nov 2026.",
+  covers:["Full tuition","Monthly allowance SEK 12,000","One-time travel grant SEK 15,000","SI Network for Global Professionals membership"],
+  website:{url:"https://si.se/en/", label:"si.se", warn:"Domain named in the source; I did not open it in this check."},
+  handbook:{url:"https://opportunitydesk.org/2026/10/22/si-scholarship-for-global-professionals-2027/", label:"2027/28 requirements summary"},
+  docs:[["University Admissions application (up to four programmes)","8-digit application number"],["SI scholarship application",""],["Proof of work experience",""],["Leadership experience description",""],["CV (Europass or SI template)",""],["Passport",""],["Reference letters","Usually two"]],
+  steps:[["Apply to programmes on University Admissions","Mid-Oct 2026 – 15 Jan 2027","","2026-10-15"],["Check eligible programme list","13 Nov 2026","","2026-11-13"],["Submit SI scholarship application","Early 2027","","2027-01-16"],["Admission results","Late Mar / Apr 2027","","2027-03-25"],["SI results","Apr 2027","","2027-04-15"],["Studies begin","Aug 2027","","2027-08-20"]],
+  sources:[["Opportunity Desk, 22 Oct 2026","https://opportunitydesk.org/2026/10/22/si-scholarship-for-global-professionals-2027/"]]
+},
+{
+  id:"swiss-excellence", region:"Europe", name:"Swiss Government Excellence Scholarships", cycle:"2027/28",
+  country:"Switzerland", issuer:"Swiss Confederation (SERI / FCS)",
+  open:{d:"2026-08-20"}, deadline:{d:null, txt:"Varies by country (e.g. Korea 10 Nov 2026)"},
+  stages:["PhD"], funding:"Fully funded",
+  who:"Researchers from countries with a Swiss agreement. Mostly for PhD, research fellowships and postdocs; master's only for a few countries. Check your country's factsheet.",
+  summary:"Research scholarships at Swiss universities and federal institutes. You need a host professor's support letter before applying.",
+  next:"Calls opened from 20 Aug 2026; each country has its own deadline. I did not confirm Indonesia's deadline.",
+  covers:["Monthly stipend (around CHF 1,920–2,450 by level, per secondary sources)","Tuition fee exemption","Health insurance","Housing allowance"],
+  website:{url:"https://swissnex.org/?p=77406", label:"Swissnex call announcement"},
+  handbook:{url:"https://www.sbfi.admin.ch/", label:"SERI/SBFI country factsheets", warn:"Domain named in the source; I did not open it in this check."},
+  docs:[["Online application (eskas portal)",""],["Research proposal",""],["Host professor support letter",""],["CV",""],["Two recommendation letters",""],["Degree certificates and transcripts",""],["Passport",""],["Medical certificate",""]],
+  steps:[["Secure a host professor","Before applying",""],["Apply through your country's channel","From Aug 2026",""],["National pre-selection","",""],["Federal Commission selection","Spring 2027",""],["Start in Switzerland","Sep 2027",""]],
+  sources:[["Swissnex (Korea call)","https://swissnex.org/?p=77406"]]
+},
+{
+  id:"eiffel", region:"Europe", name:"France Excellence Eiffel Scholarship", cycle:"2027/28",
+  country:"France", issuer:"French Ministry for Europe and Foreign Affairs, via Campus France",
+  open:{d:"2026-10-01", est:true}, deadline:{d:null, txt:"Set by each French university (e.g. ENS Lyon 20 Nov 2026)"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"Non-French students aged up to 29 (master's) or 35 (PhD). Students cannot apply directly: the French institution applies on your behalf.",
+  summary:"For master's and PhD study in France in priority fields. You apply to a French university, which selects candidates and submits them to Campus France.",
+  next:"Campus France publishes results in April 2027.",
+  covers:["Monthly allowance","Return travel","Health insurance","Cultural activities","Tuition is not paid by Eiffel (verify)"],
+  website:{url:"https://www.campusfrance.org/", label:"campusfrance.org", warn:"Homepage from my general knowledge; I did not open it in this check."},
+  handbook:{url:"https://www.ens-lyon.fr/en/article/about-us/eiffel-excellence-scholarship-program-application-2027-2028", label:"ENS Lyon: 2027-2028 Eiffel call (example)"},
+  docs:[["Application to the French programme",""],["CV",""],["Motivation letter",""],["Transcripts and diplomas",""],["Language certificate",""],["Recommendation letters",""],["Research proposal and supervisor agreement (PhD)",""]],
+  steps:[["Apply to a French master's / PhD programme","Autumn 2026","","2026-10-01"],["University internal deadline","e.g. 20 Nov 2026","","2026-11-20"],["University selection","Dec 2026","","2026-12-01"],["Submission to Campus France","Early Jan 2027 (per secondary sources)","","2027-01-06"],["Results","Apr 2027","","2027-04-01"],["Studies begin","Sep 2027","","2027-09-01"]],
+  sources:[["ENS de Lyon","https://www.ens-lyon.fr/en/article/about-us/eiffel-excellence-scholarship-program-application-2027-2028"]]
+},
+{
+  id:"holland-nl", region:"Europe", name:"NL Scholarship (Holland Scholarship)", cycle:"2027/28",
+  country:"Netherlands", issuer:"Dutch Ministry of Education with Dutch universities",
+  open:{d:"2026-11-01", est:true}, deadline:{d:null, txt:"Per university (typically 1 Feb – 1 May 2027)"},
+  stages:["Bachelor","Master"], funding:"Partially funded",
+  who:"Non-EEA nationals who have not studied in the Netherlands before.",
+  summary:"A one-off €5,000 grant in the first year of a bachelor's or master's at a participating Dutch institution. It does not cover full costs.",
+  next:"Example: Radboud University lists 31 Jan 2027 for 2027/28 master's programmes.",
+  covers:["One-time €5,000 in the first year"],
+  website:{url:"https://www.studyinnl.org/finances/nl-scholarship", label:"Study in NL: NL Scholarship", warn:"URL named in a third-party summary; I did not open it in this check."},
+  handbook:{url:"https://www.studyinnl.org/finances/nl-scholarship", label:"Participating institutions & rules"},
+  docs:[["University admission application",""],["Scholarship application (university form)",""],["Motivation letter",""],["Transcripts",""],["English test",""]],
+  steps:[["Apply for admission","Autumn 2026 – spring 2027",""],["Apply for the scholarship","University deadline",""],["Results","Spring 2027",""],["Studies begin","Sep 2027",""]],
+  sources:[["IndiaScholarships summary","https://www.indiascholarships.in/scholarships/holland-scholarship/last-date"]]
+},
+{
+  id:"goi-ies", region:"Europe", name:"Government of Ireland International Education Scholarship", cycle:"2027/28",
+  country:"Ireland", issuer:"Higher Education Authority (HEA), Ireland",
+  open:{d:null, txt:"Not yet announced"}, deadline:{d:"2027-03-12", est:true},
+  stages:["Master","PhD"], funding:"Partially funded",
+  who:"Students from outside the EU/EEA, Switzerland and the UK with an offer from an eligible Irish institution.",
+  summary:"60 awards a year for one year of master's, postgraduate diploma or PhD study in Ireland. It gives a €10,000 stipend plus a tuition waiver, but no travel costs.",
+  next:"The 2026 call closed on 12 Mar 2026, 17:00 Irish time, with results in early June. The 2027 date shown is an estimate.",
+  covers:["Full tuition fee waiver","€10,000 stipend for one year"],
+  website:{url:"https://hea.ie/policy/internationalisation/goi-ies", label:"HEA: GOI-IES"},
+  handbook:{url:"https://hea.ie/policy/internationalisation/goi-ies", label:"Call document & FAQs (on HEA page)"},
+  docs:[["Offer of admission (conditional or final)",""],["Online application form",""],["Two references (uploaded by you)",""],["Transcripts",""],["Personal statement",""]],
+  steps:[["Get an offer from an Irish institution","Before applying",""],["Online application","Expected until mid-Mar 2027",""],["Institution shortlisting","",""],["Independent panel","",""],["Results","Early Jun 2027 (expected)",""]],
+  sources:[["HEA (2026 call)","https://hea.ie/policy/internationalisation/goi-ies"]]
+},
+{
+  id:"maeci-italy", region:"Europe", name:"Italian Government Scholarships (MAECI)", cycle:"2027/28",
+  country:"Italy", issuer:"Italian Ministry of Foreign Affairs (MAECI)",
+  open:{d:null, txt:"Not yet announced"}, deadline:{d:"2027-03-26", est:true},
+  stages:["Master","PhD"], funding:"Partially funded",
+  who:"Foreign citizens and Italians living abroad, applying to Italian universities, AFAM institutions or Italian language courses.",
+  summary:"Scholarships for master's, PhD, research and Italian language study in Italy. I have labelled it partial because it does not include travel; verify coverage in the annual call.",
+  next:"The 2026/27 call closed on 26 Mar 2026. The 2027/28 date shown is an estimate.",
+  covers:["Monthly stipend (verify amount in the call)","Tuition exemption at many universities (verify)","Health insurance"],
+  website:{url:"https://ambcanberra.esteri.it/en/news/dall_ambasciata/2026/03/scholarships-for-foreign-citizens-and-italian-citizens-living-abroad-awarded-by-the-italian-government-for-the-a-y-2026-2027/", label:"Embassy of Italy (Canberra): 2026/27 call"},
+  handbook:{url:"https://ambcanberra.esteri.it/en/news/dall_ambasciata/2026/03/scholarships-for-foreign-citizens-and-italian-citizens-living-abroad-awarded-by-the-italian-government-for-the-a-y-2026-2027/", label:"2026/27 call notice (previous cycle)"},
+  docs:[["Online application on the Study in Italy portal",""],["Passport",""],["Degree certificates",""],["Language certificate (Italian or English)",""],["Pre-enrolment / admission documents",""]],
+  steps:[["Online application","Expected Feb – Mar 2027",""],["Evaluation","Spring 2027",""],["Results","Summer 2027",""],["Studies begin","Autumn 2027",""]],
+  sources:[["Embassy of Italy in Berlin: 26 Mar 2026 deadline","https://ambberlino.esteri.it/de/news/dall_ambasciata/2026/03/scholarships-for-foreign-students-and-italian-citizens-living-abroad-awarded-by-the-italian-government-deadline-26-03-2026/"]]
+},
+{
+  id:"knight-hennessy", region:"Americas", name:"Knight-Hennessy Scholars", cycle:"2027 cohort",
+  country:"United States", issuer:"Stanford University",
+  open:{d:null, txt:"Summer 2026"}, deadline:{d:"2026-10-06", note:"13:00 Pacific Time"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"Any nationality, applying to any Stanford graduate degree.",
+  summary:"Full funding for any Stanford graduate degree plus a leadership programme. You apply to both Knight-Hennessy and your Stanford programme.",
+  next:"The 2027 cohort is closed. The 2028 cohort application opens in summer 2027.",
+  covers:["Full tuition","Stipend for living and academic expenses","Travel"],
+  website:{url:"https://knight-hennessy.stanford.edu/admission", label:"Knight-Hennessy: admission"},
+  handbook:{url:"https://knight-hennessy.stanford.edu/admission/before-you-apply/dates-and-deadlines", label:"Dates and deadlines"},
+  docs:[["Knight-Hennessy application",""],["Short essays",""],["Video statement",""],["Two letters of recommendation",""],["Resume",""],["Transcripts",""],["Separate Stanford graduate application",""]],
+  steps:[["KHS application","By 6 Oct 2026","","2026-07-01"],["Stanford graduate application","Programme deadline","","2026-10-07"],["Immersion Weekend (finalists)","Early 2027","","2027-02-01"],["Decision","Spring 2027","","2027-04-01"],["Cohort begins","Autumn 2027","","2027-09-15"]],
+  sources:[["Knight-Hennessy: dates and deadlines","https://knight-hennessy.stanford.edu/admission/before-you-apply/dates-and-deadlines"]]
+},
+{
+  id:"pearson-uoft", region:"Americas", name:"Lester B. Pearson International Scholarship", cycle:"Fall 2027 entry",
+  country:"Canada", issuer:"University of Toronto",
+  open:{d:"2026-07-06"}, deadline:{d:"2026-11-06", note:"Scholarship application (after school nomination by 9 Oct, U of T application by 16 Oct)"},
+  stages:["Bachelor"], funding:"Fully funded",
+  who:"International students in their final year of secondary school (or graduated no earlier than June 2026), nominated by their school.",
+  summary:"Around 37 full four-year undergraduate scholarships at the University of Toronto. Your school must nominate you first.",
+  next:"Only students already nominated by their school (deadline 9 Oct 2026) can still finish this round.",
+  covers:["Tuition","Books","Incidental fees","Full residence support for four years"],
+  website:{url:"https://www.future.utoronto.ca/pearson", label:"U of T: Pearson Scholarships"},
+  handbook:{url:"https://www.future.utoronto.ca/pearson", label:"Eligibility and nomination guide"},
+  docs:[["School nomination","By 9 Oct 2026"],["U of T undergraduate application","By 16 Oct 2026"],["Pearson scholarship application","By 6 Nov 2026"],["School transcripts",""],["Supporting documents requested in the application",""]],
+  steps:[["School nomination","By 9 Oct 2026","","2026-07-06"],["Apply to U of T","By 16 Oct 2026","","2026-10-10"],["Pearson application","By 6 Nov 2026","","2026-10-17"],["Review","Winter 2027","","2026-11-07"],["Results","Spring 2027","","2027-03-15"],["Studies begin","Sep 2027","","2027-09-01"]],
+  sources:[["Opportunity Desk summary, Aug 2026","https://opportunitydesk.org/2026/08/22/lester-b-pearson-international-student-scholarships-2027/"]]
+},
+{
+  id:"manaaki-nz", region:"Oceania", name:"Manaaki New Zealand Scholarships", cycle:"2027 intake",
+  country:"New Zealand", issuer:"New Zealand Ministry of Foreign Affairs and Trade",
+  open:{d:null, txt:"Early 2026"}, deadline:{d:"2026-03-31", note:"Indonesia closing date"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"Citizens of eligible countries, including Indonesia. Eligible levels and fields differ by country.",
+  summary:"Postgraduate study at New Zealand universities for future leaders from partner countries.",
+  next:"The 2027 intake closed for Indonesia on 31 Mar 2026. The next round is expected in early 2027.",
+  covers:["Tuition","Living allowance","Return travel","Establishment allowance","Medical and travel insurance"],
+  website:{url:"https://www.nzscholarships.govt.nz/", label:"nzscholarships.govt.nz", warn:"Domain named on the Indonesian ministry notice; I did not open it in this check."},
+  handbook:{url:"https://kemdiktisaintek.go.id/announcement/article/pembukaan-manaaki-new-zealand-scholarship-programme-intake-2027", label:"Kemdiktisaintek announcement (Indonesian)"},
+  docs:[["Online application",""],["Passport / ID",""],["Transcripts and degree certificates",""],["English test results",""],["Referee statements",""],["Development impact statement",""]],
+  steps:[["Online application","Until 31 Mar 2026","","2026-01-15"],["Shortlisting","Mid-2026","","2026-04-01"],["Interviews","Mid-2026","","2026-06-01"],["Results","Late 2026","","2026-09-01"],["Studies begin","2027","","2027-02-15"]],
+  sources:[["Kemdiktisaintek, 10 Mar 2026","https://kemdiktisaintek.go.id/announcement/article/pembukaan-manaaki-new-zealand-scholarship-programme-intake-2027"]]
+}
+];
+const MORE2 = [
+{
+  id:"kaust", region:"Middle East", name:"KAUST Fellowship", cycle:"Fall 2027 (Round 2)",
+  country:"Saudi Arabia", issuer:"King Abdullah University of Science and Technology",
+  open:{d:"2026-09-28"}, deadline:{d:"2027-01-03", note:"Tentative; Spring 2027 PhD round closed 27 Sep 2026"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"Any nationality, admitted to a KAUST MS, MS/PhD or PhD programme in science or engineering.",
+  summary:"Admitted KAUST graduate students usually receive a fellowship with the offer. There is no separate scholarship form.",
+  next:"Decisions for this round are expected around 14 Feb 2027. KAUST says its dates are tentative.",
+  covers:["Tuition","Monthly stipend","On-campus housing","Medical and dental cover","Relocation support"],
+  website:{url:"https://www.kaust.edu.sa/", label:"kaust.edu.sa", warn:"Homepage from my general knowledge; I did not open it in this check."},
+  handbook:{url:"https://www.afrocareers.com/2026/09/kaust-scholarship-2027-in-saudi-arabia.html", label:"2027 rounds summary (third-party)"},
+  docs:[["Online application on the KAUST portal",""],["Transcripts and degree certificates",""],["CV",""],["Statement of purpose",""],["Recommendation letters",""],["English test, where required",""],["Passport",""]],
+  steps:[["Online application","28 Sep 2026 – 3 Jan 2027","","2026-09-28"],["Faculty review / interview","Jan – Feb 2027","","2027-01-04"],["Decisions","Around 14 Feb 2027","","2027-02-14"],["Semester begins","29 Aug 2027","","2027-08-29"]],
+  sources:[["Afrocareers summary, Sep 2026","https://www.afrocareers.com/2026/09/kaust-scholarship-2027-in-saudi-arabia.html"]]
+},
+{
+  id:"hbku", region:"Middle East", name:"Hamad Bin Khalifa University Graduate Scholarship", cycle:"2027 intake",
+  country:"Qatar", issuer:"Hamad Bin Khalifa University (HBKU)",
+  open:{d:null, txt:"Open (admissions portal)"}, deadline:{d:"2027-02-01", note:"International graduate applicants (third-party source)"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"International applicants to HBKU master's and PhD programmes. Funding depends on the programme and is not guaranteed.",
+  summary:"Graduate study in Qatar with possible tuition waiver and stipend, decided alongside admission.",
+  covers:["Tuition waiver","Monthly stipend","Accommodation support","Health insurance","Round-trip airfare"],
+  website:{url:"https://www.hbku.edu.qa/sem/admission-requirements", label:"HBKU admission requirements"},
+  handbook:{url:"https://www.hbku.edu.qa/sem/admission-requirements", label:"Programme admission requirements"},
+  docs:[["Online application",""],["Transcripts and degree certificates",""],["English test, where required",""],["CV and statement",""],["Recommendation letters",""],["Passport",""]],
+  steps:[["Choose programme and apply online","Until 1 Feb 2027",""],["Programme review / interview","Spring 2027",""],["Admission and funding decision","Spring 2027",""],["Studies begin","Fall 2027",""]],
+  sources:[["Afrocareers summary, Oct 2026","https://www.afrocareers.com/2026/10/hamad-bin-khalifa-university.html"]]
+},
+{
+  id:"khalifa-uni", region:"Middle East", name:"Khalifa University Graduate Scholarship", cycle:"Fall 2027",
+  country:"United Arab Emirates", issuer:"Khalifa University, Abu Dhabi",
+  open:{d:null, txt:"Admissions portal"}, deadline:{d:"2026-08-31", note:"Fall 2027 deadline per third-party blog; verify"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"Graduates with CGPA 3.0+ (master's) or 3.25+ (PhD), IELTS 6.5 / TOEFL 91, and a GRE Quant score of 150+.",
+  summary:"Scholarship decided automatically with admission to Khalifa University's science and engineering graduate programmes.",
+  next:"The Fall 2027 deadline in my source was 31 Aug 2026, which seems early. Check the official postgraduate admissions page for the current round.",
+  covers:["100% tuition waiver","Stipend AED 20,000/month base (more based on progress)","Medical insurance","Flights and visa","Conference support"],
+  website:{url:"https://www.ku.ac.ae/postgraduate-admissions", label:"Khalifa University postgraduate admissions"},
+  handbook:{url:"https://www.ku.ac.ae/postgraduate-admissions", label:"Admission & scholarship requirements"},
+  docs:[["Degree certificates and transcripts",""],["UAE Ministry of Education equivalency certificate",""],["English test score",""],["GRE score",""],["CV and statement of purpose",""],["Research statement (PhD)",""],["Two online referees",""],["Passport and photo",""]],
+  steps:[["Apply online","Per intake",""],["Review and interview","",""],["Offer with scholarship","",""],["Studies begin","Fall 2027",""]],
+  sources:[["Success Tonics blog, Aug 2026","https://www.successtonicsblog.com/2026/08/apply-now-khalifa-university-postgraduate-scholarship-2027-aed-20000-monthly-stipend"]]
+},
+{
+  id:"adb-jsp", region:"Asia", name:"ADB–Japan Scholarship Program (ADB-JSP)", cycle:"2027 intake",
+  country:"Japan & Asia-Pacific (various universities)", issuer:"Asian Development Bank, funded by Japan",
+  open:{d:null, txt:"Per university"}, deadline:{d:null, txt:"Per university (e.g. Nagoya 1–16 Jun 2026)"},
+  stages:["Master"], funding:"Fully funded",
+  who:"Citizens of ADB borrowing member countries (Indonesia is one) with a bachelor's degree; some universities require work experience.",
+  summary:"Master's study in development-related fields at designated universities in Japan and elsewhere in Asia-Pacific. You apply to the university, which nominates you to ADB.",
+  next:"Example: Nagoya University GSID took applications 1–16 Jun 2026 for an April 2027 start. Other universities have different windows.",
+  covers:["Full tuition","Monthly stipend (e.g. ¥147,000 at Nagoya)","Economy travel","Book and miscellaneous allowance"],
+  website:{url:"https://en.nagoya-u.ac.jp/news/articles/nagoya-university-gsid-announces-adb-japan-scholarship-program-applications-for-2027/", label:"Nagoya University: ADB-JSP 2027"},
+  handbook:{url:"https://www4.gsid.nagoya-u.ac.jp/en/admission/application#sec03", label:"Nagoya GSID application requirements (example)"},
+  docs:[["University admission application",""],["ADB-JSP application form",""],["Transcripts and degree",""],["Employment certificate, where required",""],["Recommendation letters",""],["English test",""],["Passport",""]],
+  steps:[["Choose a participating university","",""],["Apply to the university","University window",""],["University nominates to ADB","",""],["ADB confirmation","",""],["Studies begin","Apr or Sep/Oct 2027",""]],
+  sources:[["Nagoya University, 15 May 2026","https://en.nagoya-u.ac.jp/news/articles/nagoya-university-gsid-announces-adb-japan-scholarship-program-applications-for-2027/"]]
+},
+{
+  id:"kaist-ug", region:"Asia", name:"KAIST International Undergraduate Scholarship", cycle:"Spring 2027 entry",
+  country:"South Korea", issuer:"KAIST",
+  open:{d:"2026-08-01", est:true}, deadline:{d:"2026-11-04", est:true, note:"Round 2 (Regular), \"around 4 Nov 2026\" per third-party guide"},
+  stages:["Bachelor"], funding:"Partially funded",
+  who:"Non-Korean applicants (both parents non-Korean) applying for undergraduate admission.",
+  summary:"Admitted international undergraduates usually get full tuition and a first-year stipend. Housing and airfare are not included.",
+  covers:["100% tuition up to 8 semesters","KRW 350,000/month in year 1 (later depends on GPA)"],
+  website:{url:"https://admission.kaist.ac.kr/", label:"admission.kaist.ac.kr", warn:"Domain named in a third-party guide; I did not open it in this check."},
+  handbook:{url:"https://admission.kaist.ac.kr/", label:"International admission guidelines"},
+  docs:[["Online application",""],["High school transcripts",""],["Standardised test scores (SAT/AP/IB/A-Level etc.)",""],["English test (TOEFL 83 / IELTS 6.5)",""],["Personal statement",""],["Two recommendation letters",""],["Passports of applicant and both parents",""]],
+  steps:[["Online application","Aug – early Nov 2026","","2026-08-01"],["Document review","Nov 2026 – Jan 2027","","2026-11-05"],["Decisions","Late Jan 2027","","2027-01-25"],["Studies begin","Spring 2027","","2027-02-25"]],
+  sources:[["Opportunity Inside guide","https://opportunityinside.com/scholarships/kaist-scholarship-south-korea-2027.html"]]
+},
+{
+  id:"mis-malaysia", region:"Asia", name:"Malaysia International Scholarship (MIS)", cycle:"Next round",
+  country:"Malaysia", issuer:"Ministry of Higher Education Malaysia",
+  open:{d:null, txt:"Not yet announced"}, deadline:{d:null, txt:"Check MOHE"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"International graduates with strong academic and co-curricular records, studying at Malaysian universities.",
+  summary:"Malaysian government postgraduate scholarship. The 2026/27 round is closed; results can be checked until 31 Dec 2026.",
+  next:"I could not confirm when the next round opens.",
+  covers:["Tuition","Monthly allowance","Travel and other allowances (see guidelines)"],
+  website:{url:"https://biasiswa.mohe.gov.my/INTER/index.php", label:"MIS official portal"},
+  handbook:{url:"https://biasiswa.mohe.gov.my/INTER/index.php", label:"MIS Guidelines (linked on the portal)"},
+  docs:[["Online application",""],["Offer letter from a Malaysian university",""],["Transcripts and degree",""],["English test",""],["Recommendation letters",""],["Passport",""],["Medical report",""]],
+  steps:[["Online application","Next round",""],["Screening","",""],["Interview, if shortlisted","",""],["Results","",""]],
+  sources:[["MIS portal","https://biasiswa.mohe.gov.my/INTER/index.php"]]
+},
+{
+  id:"chula-asean", region:"Asia", name:"Chulalongkorn Graduate Scholarship (ASEAN / Non-ASEAN)", cycle:"2027",
+  country:"Thailand", issuer:"Chulalongkorn University",
+  open:{d:null, txt:"Not yet announced"}, deadline:{d:"2027-05-30", est:true, note:"University deadline; faculties close earlier"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"Applicants from ASEAN and non-ASEAN countries, age 40 or under; university staff returning home are preferred.",
+  summary:"Scholarship for master's and PhD programmes at Chulalongkorn. Apply through the faculty, not the central office.",
+  next:"In the last published call the university deadline was 30 May. 2027 dates are not announced.",
+  covers:["Tuition (not faculty special fees)","16,000 THB/month allowance","Return economy airfare (capped)"],
+  website:{url:"https://academic.chula.ac.th/detail/news/25", label:"Chulalongkorn Office of Academic Affairs"},
+  handbook:{url:"https://academic.chula.ac.th/detail/news/25", label:"Scholarship announcement & application form"},
+  docs:[["Application form with photo",""],["CV",""],["Transcript",""],["Graduation certificate",""],["Passport copy",""],["Two recommendation letters",""],["Medical certificate",""]],
+  steps:[["Choose programme, contact coordinator","",""],["Submit to the faculty","2+ weeks before university deadline",""],["Faculty screening","",""],["University decision","",""],["Studies begin","Aug 2027",""]],
+  sources:[["Gradualin guide (third-party)","https://gradualin.com/?p=2547"]]
+},
+{
+  id:"clarendon", region:"Europe", name:"Clarendon Fund Scholarships", cycle:"2027/28",
+  country:"United Kingdom", issuer:"University of Oxford",
+  open:{d:"2026-09-01", est:true}, deadline:{d:null, txt:"Course deadline (Dec 2026 or Jan 2027)"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"Any nationality, applying to an eligible Oxford graduate course.",
+  summary:"Oxford's largest graduate scholarship. There is no separate form: you are considered automatically if you apply to an eligible course by its December or January deadline.",
+  covers:["Full course fees","Living grant (at least £20,780 at 2025-26 rate)"],
+  website:{url:"https://www.ox.ac.uk/clarendon", label:"Clarendon Fund (Oxford)", warn:"URL from my general knowledge; I did not open it in this check."},
+  handbook:{url:"https://www.ox.ac.uk/clarendon", label:"Eligibility and selection"},
+  docs:[["Oxford graduate course application",""],["Personal statement",""],["Research proposal (if required)",""],["Three references",""],["Transcripts",""],["CV",""]],
+  steps:[["Apply to an Oxford course","By Dec 2026 / Jan 2027",""],["Divisional shortlisting","Feb 2027",""],["Most offers","Apr 2027",""],["No news by mid-June means unsuccessful","Jun 2027",""]],
+  sources:[["Borderless (from Oxford pages, checked 16 Sep 2026)","https://borderless.so/ru/scholarships/oxford/clarendon-fund-scholarship"]]
+},
+{
+  id:"vlir-uos", region:"Europe", name:"VLIR-UOS ICP Connect Scholarships", cycle:"2027/28",
+  country:"Belgium", issuer:"VLIR-UOS (Flemish universities, Belgian development cooperation)",
+  open:{d:null, txt:"Per programme"}, deadline:{d:"2027-02-28", note:"Deadline in one 2027/28 listing; check each programme"},
+  stages:["Master"], funding:"Fully funded",
+  who:"Citizens of about 25 eligible countries in Africa, Asia and Latin America. I could not confirm whether Indonesia is on the list.",
+  summary:"Scholarships for selected English-taught master's programmes at Flemish universities.",
+  covers:["Tuition","Monthly allowance","Travel","Insurance and accommodation (may be deducted from the allowance)"],
+  website:{url:"https://www.afterschoolafrica.com/123043/vlir-uos-icp-connect-scholarships-for-master-programmes-2027-2028/", label:"2027/28 call summary", warn:"Third-party page; the official VLIR-UOS site has the eligible-country list."},
+  handbook:{url:"https://medialibrary.uantwerpen.be/files/51782/0c559f80-e36a-40fb-9520-00a0f0e06559.pdf", label:"University of Antwerp VLIR-UOS document (PDF)"},
+  docs:[["Programme admission application",""],["Reference letters",""],["Diploma and transcripts",""],["English test, if required",""],["Legalised documents, for some countries",""]],
+  steps:[["Choose an eligible programme","",""],["Apply to programme + scholarship","By programme deadline",""],["Selection","Spring 2027",""],["Studies begin","1 Sep 2027",""]],
+  sources:[["After School Africa, 28 Oct 2026","https://www.afterschoolafrica.com/123043/vlir-uos-icp-connect-scholarships-for-master-programmes-2027-2028/"]]
+},
+{
+  id:"czech-gov", region:"Europe", name:"Czech Government Scholarships (Developing Countries)", cycle:"2027/28",
+  country:"Czech Republic", issuer:"Czech Ministry of Education (MŠMT)",
+  open:{d:"2026-08-21"}, deadline:{d:"2026-09-30"},
+  stages:["Master","PhD"], funding:"Partially funded",
+  who:"Only citizens of 13 listed countries for 2027/28 (e.g. Bangladesh, Cambodia, Ethiopia, Georgia, Ukraine, Zambia). Indonesia is not on the list.",
+  summary:"Master's and PhD study in Czech or English at Czech public universities for selected development-partner countries. Coverage is set in the guidelines; I labelled it partial because travel is not confirmed.",
+  covers:["Scholarship for the standard length of study (amounts in the Guidelines)"],
+  website:{url:"https://msmt.gov.cz/en/scholarships/government-scholarships-developing-countries", label:"MŠMT: Government Scholarships"},
+  handbook:{url:"https://msmt.gov.cz/media/wp-content/uploads/2026/08/FAQ_2026-1.pdf", label:"FAQ 2026 (PDF)"},
+  docs:[["Online application on studyin.gov.cz",""],["Motivation letter",""],["General study prerequisites test",""],["Online English test (English programmes)",""]],
+  steps:[["Online application","21 Aug – 30 Sep 2026","","2026-08-21"],["Tests and evaluation","Autumn 2026","","2026-10-01"],["Results","Early 2027","","2027-02-01"],["Studies begin","2027/28","","2027-09-15"]],
+  sources:[["MŠMT official page","https://msmt.gov.cz/en/scholarships/government-scholarships-developing-countries"]]
+},
+{
+  id:"romania-gov", region:"Europe", name:"Romanian Government Scholarships", cycle:"2027/28",
+  country:"Romania", issuer:"Romanian Ministry of Foreign Affairs",
+  open:{d:"2027-02-16", est:true}, deadline:{d:"2027-03-31", est:true},
+  stages:["Bachelor","Master","PhD"], funding:"Partially funded",
+  who:"Citizens of non-EU countries (Indonesia appears eligible). Medicine, dentistry and pharmacy are excluded.",
+  summary:"Tuition-free study in Romania with a small stipend. Bachelor's and master's are taught in Romanian after a free preparatory language year.",
+  next:"The 2026/27 round ran 16 Feb – 31 Mar 2026. The dates shown assume the same pattern.",
+  covers:["Tuition and exam fees","Monthly stipend €65–85","Dormitory (subject to availability)","Free Romanian preparatory year","Not covered: airfare, food"],
+  website:{url:"https://scholarships.studyinromania.gov.ro/", label:"Study in Romania scholarships portal", warn:"URL named in a third-party summary; I did not open it in this check."},
+  handbook:{url:"https://www.mastere.tn/en/romanian-government-scholarships/", label:"Programme summary (third-party)"},
+  docs:[["Degrees and transcripts (apostilled, translated)",""],["Birth certificate (translated)",""],["Passport (first 3 pages)",""],["CV",""],["Supervisor agreement + letter of intent (PhD)",""]],
+  steps:[["Online application","Expected mid-Feb – 31 Mar 2027",""],["Evaluation","Apr – Jun 2027",""],["Results by email","Around mid-Jul 2027",""],["Studies begin","1 Oct 2027",""]],
+  sources:[["Mastere.tn summary","https://www.mastere.tn/en/romanian-government-scholarships/"]]
+},
+{
+  id:"boell", region:"Europe", name:"Heinrich Böll Foundation Scholarships", cycle:"Spring 2027 round",
+  country:"Germany", issuer:"Heinrich Böll Foundation",
+  open:{d:"2027-01-15"}, deadline:{d:"2027-03-01"},
+  stages:["Master","PhD"], funding:"Partially funded",
+  who:"Non-German students with a first degree, German at B2/DSH II, studying or planning to study in Germany. Applicants from DAC (developing) countries get extra consideration.",
+  summary:"Scholarships from a German political foundation for students committed to green values, democracy and human rights. I labelled it partial because amounts and travel are not confirmed.",
+  covers:["Monthly maintenance grant","Study / research and mobility allowances","Family allowance","Seminars and mentoring"],
+  website:{url:"https://www.boell.de/en/scholarships", label:"boell.de/en/scholarships", warn:"URL named in a third-party summary; I did not open it in this check."},
+  handbook:{url:"https://www.boell.de/en/scholarships", label:"Application guidelines"},
+  docs:[["Transcripts and certificates",""],["Motivation letter",""],["CV",""],["German language certificate (B2 / DSH II)",""],["Research proposal (PhD)",""]],
+  steps:[["Online application","15 Jan – 1 Mar 2027","","2027-01-15"],["Written review","Spring 2027","","2027-03-02"],["Selection interview","Spring 2027","","2027-05-01"],["Funding starts","Autumn 2027","","2027-10-01"]],
+  sources:[["Opportunities for Africans summary","https://www.opportunitiesforafricans.com/heinrich-boll-foundation-scholarships-2026-2027/"]]
+},
+{
+  id:"melbourne-grs", region:"Oceania", name:"Melbourne Graduate Research Scholarships", cycle:"2027 commencement",
+  country:"Australia", issuer:"University of Melbourne",
+  open:{d:null, txt:"With course application"}, deadline:{d:null, txt:"Course application closing date"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"Domestic and international applicants to research master's and PhD programmes at Melbourne.",
+  summary:"New applicants are considered automatically when they apply for an eligible research course by its closing date.",
+  covers:["Stipend AUD 39,500/yr (2026 rate)","Full tuition fee offset","Relocation grant AUD 3,000 (international)","Overseas Student Health Cover"],
+  website:{url:"https://study.unimelb.edu.au/find/courses/graduate/doctor-of-philosophy-medicine-dentistry-and-health-sciences/fees/", label:"University of Melbourne: PhD fees & scholarships"},
+  handbook:{url:"https://study.unimelb.edu.au/find/courses/graduate/doctor-of-philosophy-medicine-dentistry-and-health-sciences/fees/", label:"Scholarship information on course pages"},
+  docs:[["Research degree application",""],["Research proposal",""],["Supervisor contact / agreement",""],["Transcripts",""],["CV",""],["English test",""],["Referee reports",""]],
+  steps:[["Find a supervisor","",""],["Apply for the research course","By its closing date",""],["Automatic scholarship ranking","",""],["Offer","",""]],
+  sources:[["IndiaScholarships summary","https://www.indiascholarships.in/scholarships/university-of-melbourne-graduate-research-scholarship/last-date"]]
+},
+{
+  id:"sydney-usydis", region:"Oceania", name:"University of Sydney International Stipend Scholarship", cycle:"2027 (research periods 3–4)",
+  country:"Australia", issuer:"University of Sydney",
+  open:{d:null, txt:"Open"}, deadline:{d:"2026-12-18", note:"For research periods 3 and 4 in 2027 (periods 1–2 closed 11 Sep 2026)"},
+  stages:["Master","PhD"], funding:"Fully funded",
+  who:"International students with an unconditional offer for (or enrolled in) a research master's or PhD at Sydney.",
+  summary:"Covers tuition and living costs for research degrees. Apply for admission and submit the scholarship form by the same deadline.",
+  covers:["Tuition fees","Living stipend (AUD 42,754/yr at 2025 rate)"],
+  website:{url:"https://www.scholars4dev.com/2026/06/02/international-scholarships-at-university-of-sydney/", label:"Programme summary", warn:"Third-party page; the official page is on sydney.edu.au."},
+  handbook:{url:"https://www.scholars4dev.com/2026/06/02/international-scholarships-at-university-of-sydney/", label:"Rounds and eligibility"},
+  docs:[["Research degree admission application",""],["Scholarship application form",""],["Research proposal",""],["Transcripts",""],["CV",""],["English test",""]],
+  steps:[["Apply for admission + scholarship","By 18 Dec 2026",""],["Assessment","Early 2027",""],["Offer","",""],["Start","Research period 3 or 4, 2027",""]],
+  sources:[["Scholars4Dev, Jun 2026","https://www.scholars4dev.com/2026/06/02/international-scholarships-at-university-of-sydney/"]]
+},
+{
+  id:"oas-asp", region:"Americas", name:"OAS Academic Scholarship Program", cycle:"Next call",
+  country:"Americas (OAS member states)", issuer:"Organization of American States",
+  open:{d:null, txt:"Per country (ONE)"}, deadline:{d:null, txt:"Per country (ONE)"},
+  stages:["Master","PhD"], funding:"Partially funded",
+  who:"Citizens or permanent residents of the 34 OAS member states. Not open to Indonesians.",
+  summary:"Up to US$10,000 a year for graduate study in another OAS member state, online or on site. Undergraduate support only for the English-speaking Caribbean and Suriname.",
+  covers:["Up to US$10,000 per academic year"],
+  website:{url:"https://www.oas.org/scholarships", label:"oas.org/scholarships"},
+  handbook:{url:"https://www.oas.org/scholarships", label:"ASP call and your country's ONE contact"},
+  docs:[["OAS online application",""],["Admission letter",""],["Transcripts",""],["Recommendation letters",""],["Endorsement from your National Liaison Office (ONE)",""]],
+  steps:[["Get admission to a programme","",""],["Apply to OAS and via your ONE","Country deadline",""],["Selection","",""],["Award","",""]],
+  sources:[["OAS scholarships page","https://www.oas.org/scholarships"]]
+}
+];
+DATA.push(...MORE2);
+const REGION={chevening:"Europe","aas-indonesia":"Oceania",lpdp:"Asia","fulbright-aminef":"Americas","mext-research":"Asia","gks-ug":"Asia","gks-grad":"Asia","stipendium-hungaricum":"Europe","turkiye-burslari":"Europe","daad-epos":"Europe","erasmus-mundus":"Europe"};
+DATA.forEach(s=>{if(!s.region)s.region=REGION[s.id]});
+DATA.push(...MORE);
+
+const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const fmt=d=>{const x=new Date(d+"T12:00:00");return `${x.getDate()} ${MONTHS[x.getMonth()]} ${x.getFullYear()}`};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function status(s){
+  const o=s.open.d?new Date(s.open.d+"T00:00:00"):null, dl=s.deadline.d?new Date(s.deadline.d+"T23:59:59"):null;
+  if(!dl){ return (s.open.txt||"").startsWith("Not yet")||(s.deadline.txt||"").startsWith("Check")?"tbc":"varies"; }
+  if(TODAY>dl) return "closed";
+  if(o&&TODAY<o) return "upcoming";
+  if(!o&&s.deadline.est) return "upcoming";
+  return "open";
+}
+const STATUS_LABEL={open:"Open now",upcoming:"Upcoming",closed:"Closed",varies:"Varies",tbc:"Not announced"};
+const STATUS_ORDER={open:0,upcoming:1,varies:2,tbc:3,closed:4};
+DATA.forEach(s=>s.status=status(s));
+
+function dateCell(x){
+  if(!x.d) return `<span class="muted">${esc(x.txt)}</span>`;
+  return esc(fmt(x.d))+(x.est?'<span class="est" title="Not yet announced; estimated from previous cycle">EXPECTED</span>':"");
+}
+
+/* ---------- list ---------- */
+const $=id=>document.getElementById(id);
+let sortKey="status", sortDir=1;
+[...new Set(DATA.map(s=>s.country))].sort().forEach(c=>$("fCountry").insertAdjacentHTML("beforeend",`<option>${esc(c)}</option>`));
+
+function cmp(a,b){
+  const k=sortKey;
+  let va,vb;
+  if(k==="open"||k==="deadline"){va=a[k].d||"9999";vb=b[k].d||"9999"}
+  else if(k==="status"){va=STATUS_ORDER[a.status];vb=STATUS_ORDER[b.status]; if(va===vb){va=a.deadline.d||"9999";vb=b.deadline.d||"9999"}}
+  else {va=String(a[k]).toLowerCase();vb=String(b[k]).toLowerCase()}
+  return (va<vb?-1:va>vb?1:0)*sortDir;
+}
+function renderList(){
+  const q=$("q").value.trim().toLowerCase(), r=$("fRegion").value, c=$("fCountry").value, st=$("fStage").value, f=$("fFund").value, ss=$("fStatus").value;
+  const list=DATA.filter(s=>(!q||(s.name+" "+s.country+" "+s.issuer).toLowerCase().includes(q))&&(!r||s.region===r)&&(!c||s.country===c)&&(!st||s.stages.includes(st))&&(!f||s.funding===f)&&(!ss||s.status===ss)).sort(cmp);
+  $("count").textContent=`${list.length} of ${DATA.length} scholarships`;
+  document.querySelectorAll("th button").forEach(b=>b.querySelector(".arr").textContent=b.dataset.sort===sortKey?(sortDir>0?"↑":"↓"):"");
+  $("rows").innerHTML=list.length?list.map(s=>`
+    <tr tabindex="0" data-id="${s.id}">
+      <td class="name"><strong>${esc(s.name)}</strong><span>${esc(s.cycle)}</span></td>
+      <td>${esc(s.country)}</td>
+      <td class="muted" style="max-width:220px">${esc(s.issuer)}</td>
+      <td class="date">${dateCell(s.open)}</td>
+      <td class="date">${dateCell(s.deadline)}</td>
+      <td><div class="chips">${s.stages.map(x=>`<span class="chip">${x}</span>`).join("")}</div></td>
+      <td class="${s.funding==="Fully funded"?"fund-full":"fund-partial"}" style="white-space:nowrap">${s.funding==="Fully funded"?"Fully":"Partial"}</td>
+      <td><span class="pill s-${s.status}">${STATUS_LABEL[s.status]}</span></td>
+    </tr>`).join(""):`<tr><td colspan="8" class="empty">No scholarships match these filters. Clear a filter to see more.</td></tr>`;
+}
+["q","fRegion","fCountry","fStage","fFund","fStatus"].forEach(id=>$(id).addEventListener("input",renderList));
+document.querySelectorAll("th button").forEach(b=>b.addEventListener("click",()=>{if(sortKey===b.dataset.sort)sortDir*=-1;else{sortKey=b.dataset.sort;sortDir=1}renderList()}));
+$("rows").addEventListener("click",e=>{const tr=e.target.closest("tr[data-id]");if(tr)location.hash=tr.dataset.id});
+$("rows").addEventListener("keydown",e=>{if(e.key==="Enter"){const tr=e.target.closest("tr[data-id]");if(tr)location.hash=tr.dataset.id}});
+
+/* ---------- checklist storage ---------- */
+const KEY="scholarship-atlas-checks";
+function loadChecks(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return {}}}
+let checks=loadChecks();
+function saveChecks(){try{localStorage.setItem(KEY,JSON.stringify(checks))}catch(e){}}
+
+/* ---------- detail ---------- */
+function stageState(steps,i){
+  const d=steps[i][3]; if(!d) return "";
+  const next=steps.slice(i+1).find(x=>x[3]);
+  const start=new Date(d+"T00:00:00");
+  if(TODAY<start) return "";
+  if(next && TODAY>=new Date(next[3]+"T00:00:00")) return "done";
+  return "now";
+}
+function renderDetail(s){
+  const done=checks[s.id]||[];
+  const linkCard=(l,t)=>`<a class="lk" href="${esc(l.url)}" target="_blank" rel="noopener"><span class="eyebrow">${t}</span><span class="t">${esc(l.label)} ↗</span><span class="u">${esc(l.url.replace(/^https?:\/\//,""))}</span>${l.note?`<span class="muted" style="font-size:12.5px">${esc(l.note)}</span>`:""}${l.warn?`<span class="n">${esc(l.warn)}</span>`:""}</a>`;
+  $("detailView").innerHTML=`
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <button class="back" id="backBtn">← All scholarships</button>
+    <div class="dhead">
+      <div class="eyebrow">${esc(s.country)} · ${esc(s.cycle)}</div>
+      <h2>${esc(s.name)}</h2>
+      <p class="sub">${esc(s.summary)}</p>
+    </div>
+    <div class="facts">
+      <div><span class="eyebrow">Issuer</span><span class="v">${esc(s.issuer)}</span></div>
+      <div><span class="eyebrow">Application open</span><span class="v mono">${dateCell(s.open)}</span></div>
+      <div><span class="eyebrow">Deadline</span><span class="v mono">${dateCell(s.deadline)}</span>${s.deadline.note?`<span class="muted" style="font-size:12.5px">${esc(s.deadline.note)}</span>`:""}</div>
+      <div><span class="eyebrow">Education stage</span><span class="v">${s.stages.join(", ")}</span></div>
+      <div><span class="eyebrow">Funding</span><span class="v">${esc(s.funding)}</span></div>
+      <div><span class="eyebrow">Status today</span><span><span class="pill s-${s.status}">${STATUS_LABEL[s.status]}</span></span></div>
+    </div>
+    ${s.who?`<div class="notice"><b>Who can apply:</b> ${esc(s.who)}</div>`:""}
+    ${s.next?`<div class="callout">${esc(s.next)}</div>`:""}
+    <div class="grid2">
+      <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+        <section class="panel">
+          <div class="panel-h"><h3>Document requirements</h3><span class="mono muted" id="ckCount"></span></div>
+          <div class="progress" aria-hidden="true"><i id="ckBar"></i></div>
+          <ul class="checklist">${s.docs.map((d,i)=>`<li><label for="ck-${s.id}-${i}"><input type="checkbox" id="ck-${s.id}-${i}" data-i="${i}" ${done.includes(i)?"checked":""}><span class="d"><span>${esc(d[0])}</span>${d[1]?`<small>${esc(d[1])}</small>`:""}</span></label></li>`).join("")}</ul>
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span class="muted" style="font-size:12.5px">Typical list. The official handbook is the final word.</span><button class="linkbtn" id="ckReset">Clear ticks</button></div>
+        </section>
+        <section class="panel">
+          <h3>What it covers</h3>
+          <ul class="covers">${s.covers.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>
+        </section>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+        <section class="panel">
+          <h3>Handbook & official website</h3>
+          <div class="links">${linkCard(s.handbook,"Handbook / guidelines")}${linkCard(s.website,"Official website")}</div>
+        </section>
+        <section class="panel">
+          <h3>Application stages</h3>
+          <ol class="stages">${s.steps.map((st,i)=>{const cls=stageState(s.steps,i);return `<li class="${cls}"><span class="dot">${cls==="done"?"✓":i+1}</span><div><strong>${esc(st[0])}</strong>${st[1]?`<div class="when">${esc(st[1])}${cls==="now"?" · current stage":""}</div>`:""}${st[2]?`<p>${esc(st[2])}</p>`:""}</div></li>`}).join("")}</ol>
+        </section>
+        <section class="panel">
+          <h3>Where these dates come from</h3>
+          <ul class="srcs">${s.sources.map(x=>`<li><a href="${esc(x[1])}" target="_blank" rel="noopener">${esc(x[0])}</a></li>`).join("")}</ul>
+        </section>
+      </div>
+    </div>
+  </div>`;
+  const upd=()=>{const n=(checks[s.id]||[]).length;$("ckCount").textContent=`${n} / ${s.docs.length} ready`;$("ckBar").style.width=(n/s.docs.length*100)+"%"};
+  upd();
+  $("detailView").querySelectorAll(".checklist input").forEach(cb=>cb.addEventListener("change",()=>{
+    const i=+cb.dataset.i, arr=new Set(checks[s.id]||[]); cb.checked?arr.add(i):arr.delete(i);
+    checks[s.id]=[...arr]; saveChecks(); upd();
+  }));
+  $("ckReset").addEventListener("click",()=>{checks[s.id]=[];saveChecks();$("detailView").querySelectorAll(".checklist input").forEach(c=>c.checked=false);upd()});
+  $("backBtn").addEventListener("click",()=>{location.hash="";});
+}
+
+function route(){
+  const id=location.hash.slice(1), s=DATA.find(x=>x.id===id);
+  $("listView").hidden=!!s; $("detailView").hidden=!s;
+  if(s){renderDetail(s);window.scrollTo(0,0)} else renderList();
+}
+$("total").textContent=DATA.length;
+window.addEventListener("hashchange",route);
+route();
+</script>
+</body>
+</html>
