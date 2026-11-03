@@ -1,6 +1,6 @@
 # Scholarship Atlas
 
-A single-page website listing 150 international scholarships for bachelor's, master's and PhD study across Asia, Europe, the Americas, the Middle East, Africa, Oceania and global programmes.
+A single-page website listing 172 international scholarships for bachelor's, master's and PhD study across Asia, Europe, the Americas, the Middle East, Africa, Oceania and global programmes.
 
 - **Table view:** Scholarship name, country, issuer, application open, application deadline, education stage, fully/partially funded, and status. Search, filters (region, country, stage, funding, status) and sortable columns.
 - **Detail view:** click a row for the handbook/guidelines link, official website, a tickable document checklist (saved in your browser), application stages, coverage, eligibility and the sources used.
@@ -19,4 +19,4 @@ Settings → Pages → Deploy from branch → `main` / root.
 
 ## Updating data
 
-All scholarships live in the `DATA`, `MORE`, `MORE2`, `MORE3` and `MORE4` arrays inside `index.html`. Each entry has a unique `id`; keep IDs and names unique when adding new ones.
+All scholarships live in the `DATA`, `MORE`, `MORE2`, `MORE3`, `MORE4` and `MORE5` arrays inside `index.html`. Each entry has a unique `id`; keep IDs and names unique when adding new ones.
